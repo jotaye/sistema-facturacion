@@ -1,1 +1,100 @@
-document.addEventListener("DOMContentLoaded",()=>{const e=document.querySelector("#tablaItems tbody"),t=document.getElementById("btnAgregar"),n=document.getElementById("btnGuardar"),a=document.getElementById("btnImprimir"),r=document.getElementById("btnFactura"),d=document.getElementById("btnEnviar"),l=document.getElementById("resSubtotal"),c=document.getElementById("resImpuestos"),o=document.getElementById("resTotal"),i=document.getElementById("inputDescuento"),s=document.getElementById("inputAnticipo"),u=()=>{let t=0;e.querySelectorAll("tr").forEach(e=>{const n=parseFloat(e.querySelector(".cantidad").value)||0,a=parseFloat(e.querySelector(".precio").value)||0,r=n*a;e.querySelector(".subtotal").textContent=r.toFixed(2),t+=r});const n=t*.1,a=t*(parseFloat(i.value)||0)/100,r=parseFloat(s.value)||0,d=t+n-a-r;l.textContent=t.toFixed(2),c.textContent=n.toFixed(2),o.textContent=d.toFixed(2)};i.addEventListener("input",u),s.addEventListener("input",u),t.addEventListener("click",(()=>{const t=document.createElement("tr");t.innerHTML='<td><input type="text" class="descripcion" placeholder="Descripción" /></td><td><input type="number" class="cantidad" value="1" min="1" /></td><td><input type="number" class="precio" value="0.00" step="0.01" /></td><td>$<span class="subtotal">0.00</span></td><td><button class="btnEliminar">Eliminar</button></td>',t.querySelectorAll("input").forEach(e=>{e.addEventListener("input",u)}),t.querySelector(".btnEliminar").addEventListener("click",(()=>{t.remove(),u()})),e.appendChild(t),u()})),n.addEventListener("click",(()=>alert("Guardar aún no implementado"))),a.addEventListener("click",(()=>window.print())),r.addEventListener("click",(()=>alert("Generar PDF aún no implementado"))),d.addEventListener("click",(()=>alert("Enviar aún no implementado"))),t.click()});
+// src/js/script.js (completo y actualizado)
+
+document.addEventListener("DOMContentLoaded", () => {
+  const tablaBody = document.querySelector("#tablaItems tbody");
+  const btnAgregar = document.getElementById("btnAgregar");
+  const btnGuardar = document.getElementById("btnGuardar");
+  const btnImprimir = document.getElementById("btnImprimir");
+  const btnFactura = document.getElementById("btnFactura");
+  const btnEnviar = document.getElementById("btnEnviar");
+
+  const resSubtotal = document.getElementById("resSubtotal");
+  const resImpuestos = document.getElementById("resImpuestos");
+  const resTotal = document.getElementById("resTotal");
+  const inputDescuento = document.getElementById("inputDescuento");
+  const inputAnticipo = document.getElementById("inputAnticipo");
+
+  const calcularTotales = () => {
+    let subtotal = 0;
+    tablaBody.querySelectorAll("tr").forEach(row => {
+      const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
+      const precio = parseFloat(row.querySelector(".precio").value) || 0;
+      const subtotalItem = cantidad * precio;
+      row.querySelector(".subtotal").textContent = subtotalItem.toFixed(2);
+      subtotal += subtotalItem;
+    });
+
+    const impuestos = subtotal * 0.10;
+    const descuento = subtotal * (parseFloat(inputDescuento.value) || 0) / 100;
+    const anticipo = parseFloat(inputAnticipo.value) || 0;
+    const total = subtotal + impuestos - descuento - anticipo;
+
+    resSubtotal.textContent = subtotal.toFixed(2);
+    resImpuestos.textContent = impuestos.toFixed(2);
+    resTotal.textContent = total.toFixed(2);
+  };
+
+  const agregarFila = () => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td><input type="text" class="descripcion" placeholder="Descripción" /></td>
+      <td><input type="number" class="cantidad" value="1" min="1" /></td>
+      <td><input type="number" class="precio" value="0.00" step="0.01" /></td>
+      <td>$<span class="subtotal">0.00</span></td>
+      <td><button class="btnEliminar">Eliminar</button></td>
+    `;
+
+    fila.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", calcularTotales);
+    });
+
+    fila.querySelector(".btnEliminar").addEventListener("click", () => {
+      fila.remove();
+      calcularTotales();
+    });
+
+    tablaBody.appendChild(fila);
+    calcularTotales();
+  };
+
+  inputDescuento.addEventListener("input", calcularTotales);
+  inputAnticipo.addEventListener("input", calcularTotales);
+  btnAgregar.addEventListener("click", agregarFila);
+  btnImprimir.addEventListener("click", () => window.print());
+  btnGuardar.addEventListener("click", () => alert("Guardar cotización aún no implementado."));
+  btnFactura.addEventListener("click", () => alert("Generación de PDF aún no implementada."));
+
+  btnEnviar.addEventListener("click", async () => {
+    const numero = "0001";
+    const to = document.getElementById("clienteEmail").value;
+    const subject = "Cotización enviada desde el sistema";
+    const texto = "Gracias por confiar en nuestros servicios.";
+
+    if (!to) {
+      alert("Por favor ingresa el email del cliente.");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero, to, subject, texto })
+      });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        alert("Cotización enviada exitosamente al correo del cliente.");
+      } else {
+        alert("Error al enviar: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      alert("No se pudo enviar la cotización.");
+    }
+  });
+
+  // Inicializar con una fila
+  agregarFila();
+});
