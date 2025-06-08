@@ -17,28 +17,28 @@
       <h2>Jotaye Group LLC</h2>
       <p>Dirección: 11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
       <p>Tel: +1 (305) 417-2681</p>
-      <p>Email: <a href="mailto:jotayegroupllc@gmail.com">jotayegroupllc@gmail.com</a></p>
+      <p>Email: <a href="mailto:billing@jotayegroupllc.com">billing@jotayegroupllc.com</a></p>
       <p>Web: <a href="https://www.jotayegroupllc.com" target="_blank">www.jotayegroupllc.com</a></p>
     </div>
     <div class="cliente">
       <h3>Datos del Cliente</h3>
-      <label>Nombre: <input type="text" id="clienteNombre" placeholder="Nombre del cliente" /></label>
-      <label>Dirección: <input type="text" id="clienteDireccion" placeholder="Dirección" /></label>
+      <label>Nombre:<input type="text" id="clienteNombre" placeholder="Nombre del cliente" /></label>
+      <label>Dirección:<input type="text" id="clienteDireccion" placeholder="Dirección" /></label>
       <div class="fila">
-        <label>Teléfono: <input type="text" id="clienteTelefono" placeholder="Teléfono" /></label>
-        <label>Email: <input type="email" id="clienteEmail" placeholder="Correo electrónico" /></label>
+        <label>Teléfono:<input type="text" id="clienteTelefono" placeholder="Teléfono" /></label>
+        <label>Email:<input type="email" id="clienteEmail" placeholder="Correo electrónico" /></label>
       </div>
-      <label>Notas: <textarea id="clienteNotas" rows="2" placeholder="Notas adicionales"></textarea></label>
+      <label>Notas:<textarea id="clienteNotas" rows="3" placeholder="Notas adicionales"></textarea></label>
     </div>
   </section>
 
-  <section class="cotizacion">
-    <div class="datos-cotizacion">
-      <label>Fecha Emisión: <input type="date" id="fecha" /></label>
-      <label>N° Cotización: <input type="text" id="numero" value="0001" /></label>
-      <label>Buscar N°: <input type="text" id="buscar" /> <button>Cargar</button></label>
-    </div>
+  <section class="datos-cotizacion">
+    <label>Fecha Emisión: <input type="date" id="fecha" /></label>
+    <label>N° Cotización: <input type="text" id="numero" value="0001" /></label>
+    <label>Buscar N°: <input type="text" id="buscar" /> <button id="btnBuscar">Cargar</button></label>
+  </section>
 
+  <section class="tabla-items">
     <h2>Detalle de Productos / Servicios</h2>
     <table id="tablaItems">
       <thead>
@@ -48,31 +48,26 @@
           <th>Cantidad</th>
           <th>Precio Unitario</th>
           <th>Importe</th>
+          <th>Acción</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>1</td>
-          <td><input type="text" placeholder="Descripción" /></td>
-          <td><input type="number" value="0" /></td>
-          <td><input type="number" value="0.00" /></td>
-          <td>0.00</td>
-        </tr>
-      </tbody>
+      <tbody></tbody>
     </table>
-    <button id="btnAgregarFila">+ Agregar fila</button>
-    <button id="btnEliminarFila">− Eliminar fila</button>
+    <div class="acciones-fila">
+      <button id="btnAgregarFila">+ Agregar fila</button>
+      <button id="btnEliminarFila">− Eliminar fila</button>
+    </div>
   </section>
 
   <section class="resumen-factura">
     <h2>Resumen de Cotización</h2>
-    <div class="linea"><label>Subtotal:</label> <span>$<span id="resSubtotal">0.00</span></span></div>
-    <div class="linea"><label>Descuento (%):</label> <input type="number" id="descuentoPorcentaje" value="0" /></div>
-    <div class="linea"><label>Descuento ($):</label> <input type="number" id="descuentoValor" readonly /></div>
-    <div class="linea"><label>% Impuesto:</label> <input type="number" id="impuestoPorcentaje" value="7" /></div>
-    <div class="linea"><label>Importe Impuesto:</label> <input type="number" id="resImpuestos" readonly /></div>
-    <div class="linea"><label>Anticipo ($):</label> <input type="number" id="anticipo" value="0" /></div>
-    <div class="linea total"><label>Total Neto:</label> <strong>$<span id="resTotal">0.00</span></strong></div>
+    <label>Subtotal: <input type="number" id="resSubtotal" readonly /></label>
+    <label>Descuento (%): <input type="number" id="inputDescuento" value="0" min="0" max="100" /></label>
+    <label>Descuento ($): <input type="number" id="resDescuento" readonly /></label>
+    <label>% Impuesto: <input type="number" id="inputImpuesto" value="7" min="0" max="100" /></label>
+    <label>Importe Impuesto: <input type="number" id="resImpuestos" readonly /></label>
+    <label>Anticipo: <input type="number" id="inputAnticipo" value="0" min="0" step="0.01" /></label>
+    <label>Total Neto: <input type="number" id="resTotal" readonly /></label>
   </section>
 
   <div class="acciones">
