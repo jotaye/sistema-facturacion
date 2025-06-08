@@ -22,20 +22,20 @@
     </div>
     <div class="cliente">
       <h3>Datos del Cliente</h3>
-      <label>Nombre:<input type="text" id="clienteNombre" placeholder="Nombre del cliente" /></label>
-      <label>Dirección:<input type="text" id="clienteDireccion" placeholder="Dirección" /></label>
+      <label>Nombre:<input type="text" id="clienteNombre" /></label>
+      <label>Dirección:<input type="text" id="clienteDireccion" /></label>
       <div class="fila">
-        <label>Teléfono:<input type="text" id="clienteTelefono" placeholder="Teléfono" /></label>
-        <label>Email:<input type="email" id="clienteEmail" placeholder="Correo electrónico" /></label>
+        <label>Teléfono:<input type="text" id="clienteTelefono" /></label>
+        <label>Email:<input type="email" id="clienteEmail" /></label>
       </div>
-      <label>Notas:<textarea id="clienteNotas" rows="3" placeholder="Notas adicionales"></textarea></label>
+      <label>Notas:<textarea id="clienteNotas" rows="2"></textarea></label>
     </div>
   </section>
 
-  <section class="datos-generales">
-    <label>Fecha Emisión: <input type="date" id="fecha" /></label>
-    <label>N° Cotización: <input type="text" id="numero" value="0001" /></label>
-    <label>Buscar N°: <input type="text" id="buscar" /> <button id="btnBuscar">Cargar</button></label>
+  <section class="datos-superiores">
+    <label>Fecha Emisión:<input type="date" id="fecha" /></label>
+    <label>N° Cotización:<input type="text" id="numero" value="0001" /></label>
+    <label>Buscar N°:<input type="text" id="buscar" /><button>Cargar</button></label>
   </section>
 
   <section class="tabla-items">
@@ -59,13 +59,13 @@
 
   <section class="resumen-factura">
     <h2>Resumen de Cotización</h2>
-    <div class="linea"><label>Subtotal:</label><input type="number" id="resSubtotal" readonly /></div>
-    <div class="linea"><label>Descuento (%):</label><input type="number" id="descuentoPorcentaje" value="0" min="0" max="100" /></div>
-    <div class="linea"><label>Descuento ($):</label><input type="number" id="descuentoValor" readonly /></div>
-    <div class="linea"><label>% Impuesto:</label><input type="number" id="impuestoPorcentaje" value="7" /></div>
-    <div class="linea"><label>Importe Impuesto:</label><input type="number" id="resImpuestos" readonly /></div>
+    <div class="linea"><label>Subtotal:</label><input id="resSubtotal" readonly /></div>
+    <div class="linea"><label>Descuento (%):</label><input type="number" id="inputDescuentoPorc" value="0" /></div>
+    <div class="linea"><label>Descuento ($):</label><input id="resDescuento" readonly /></div>
+    <div class="linea"><label>% Impuesto:</label><input type="number" id="inputImpuesto" value="7" /></div>
+    <div class="linea"><label>Importe Impuesto:</label><input id="resImpuestos" readonly /></div>
     <div class="linea"><label>Anticipo:</label><input type="number" id="inputAnticipo" value="0" /></div>
-    <div class="linea total"><label>Total Neto:</label><input type="number" id="resTotal" readonly /></div>
+    <div class="linea"><strong>Total Neto:</strong><input id="resTotal" readonly /></div>
   </section>
 
   <div class="acciones">
@@ -77,6 +77,24 @@
     <button id="btnAprobar" class="btn btn-primary">✅ Aprobar Cotización</button>
   </div>
 
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    header { background: #263144; color: white; text-align: center; padding: 20px; }
+    header .logo { max-width: 80px; margin-bottom: 10px; }
+    .info-empresa-cliente { display: flex; justify-content: space-between; gap: 20px; background: white; padding: 20px; border-radius: 8px; }
+    .datos-superiores { display: flex; gap: 10px; justify-content: space-between; margin: 20px 0; background: white; padding: 10px; border-radius: 8px; }
+    .cotizacion, .resumen-factura { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    .tabla-items table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+    .linea { margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .linea input { width: 120px; text-align: right; }
+    .acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+    .acciones button { min-width: 180px; font-weight: bold; padding: 10px; border-radius: 5px; border: none; cursor: pointer; }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-warning { background: #ffc107; color: black; }
+    .btn-dark { background: #343a40; color: white; }
+  </style>
   <script src="script.js"></script>
 </body>
 </html>
