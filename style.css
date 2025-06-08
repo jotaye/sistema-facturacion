@@ -8,10 +8,11 @@ body {
 }
 
 header {
-  background-color: #004080;
-  color: #fff;
+  header {
+  background-color: #ffffff; /* FONDO CLARO para ver el logo */
   padding: 20px;
   text-align: center;
+  border-bottom: 1px solid #ddd;
 }
 
 .logo {
