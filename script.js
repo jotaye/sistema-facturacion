@@ -1,6 +1,6 @@
 // script.js
 
-// Configuración de Firebase
+// Firebase config
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -17,10 +17,50 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Función para obtener los datos del formulario y guardar cotización
+// Calcular totales
+function calcularTotales() {
+  const filas = document.querySelectorAll("#tablaItems tbody tr");
+  let subtotal = 0;
+  filas.forEach((fila) => {
+    const cantidad = parseFloat(fila.cells[2].querySelector("input").value) || 0;
+    const precio = parseFloat(fila.cells[3].querySelector("input").value) || 0;
+    const importe = cantidad * precio;
+    fila.cells[4].innerText = importe.toFixed(2);
+    subtotal += importe;
+  });
+
+  const descuentoPct = parseFloat(document.getElementById("descuentoPorcentaje").value) || 0;
+  const descuentoVal = (subtotal * descuentoPct) / 100;
+  const baseImponible = subtotal - descuentoVal;
+  const impuestoPct = parseFloat(document.getElementById("impuestoPorcentaje").value) || 0;
+  const impuestos = (baseImponible * impuestoPct) / 100;
+  const anticipo = parseFloat(document.getElementById("anticipo").value) || 0;
+  const total = baseImponible + impuestos - anticipo;
+
+  document.getElementById("resSubtotal").value = subtotal.toFixed(2);
+  document.getElementById("descuentoValor").value = descuentoVal.toFixed(2);
+  document.getElementById("resImpuestos").value = impuestos.toFixed(2);
+  document.getElementById("resTotal").value = total.toFixed(2);
+}
+
+// Escuchar cambios
+["descuentoPorcentaje", "impuestoPorcentaje", "anticipo"].forEach(id => {
+  document.getElementById(id).addEventListener("input", calcularTotales);
+});
+
+// Guardar cotización en Firestore
 async function guardarCotizacion() {
+  calcularTotales();
+
   const fecha = document.getElementById("fecha").value;
   const numero = document.getElementById("numero").value;
+  const cliente = {
+    nombre: document.getElementById("clienteNombre").value,
+    direccion: document.getElementById("clienteDireccion").value,
+    telefono: document.getElementById("clienteTelefono").value,
+    email: document.getElementById("clienteEmail").value,
+    notas: document.getElementById("clienteNotas").value
+  };
   const items = [];
   const filas = document.querySelectorAll("#tablaItems tbody tr");
 
@@ -32,16 +72,19 @@ async function guardarCotizacion() {
     items.push({ descripcion, cantidad, precio, importe });
   });
 
-  const subtotal = parseFloat(document.getElementById("resSubtotal").value) || 0;
-  const impuestos = parseFloat(document.getElementById("resImpuestos").value) || 0;
-  const total = parseFloat(document.getElementById("resTotal").value) || 0;
+  const subtotal = parseFloat(document.getElementById("resSubtotal").value);
+  const descuento = parseFloat(document.getElementById("descuentoValor").value);
+  const impuestos = parseFloat(document.getElementById("resImpuestos").value);
+  const total = parseFloat(document.getElementById("resTotal").value);
 
   try {
     const docRef = await addDoc(collection(db, "cotizaciones"), {
       numero,
       fecha,
+      cliente,
       items,
       subtotal,
+      descuento,
       impuestos,
       total,
       estado: "pendiente"
@@ -52,12 +95,12 @@ async function guardarCotizacion() {
   }
 }
 
-// Lógica para botones
+// Acciones de botones
 
 document.getElementById("btnGuardar").addEventListener("click", guardarCotizacion);
-document.getElementById("btnReiniciar").addEventListener("click", () => {
-  location.reload();
-});
-document.getElementById("btnImprimir").addEventListener("click", () => {
-  window.print();
+document.getElementById("btnReiniciar").addEventListener("click", () => location.reload());
+document.getElementById("btnImprimir").addEventListener("click", () => window.print());
+
+document.querySelectorAll("#tablaItems input").forEach(input => {
+  input.addEventListener("input", calcularTotales);
 });
