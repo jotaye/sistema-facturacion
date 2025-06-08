@@ -1,4 +1,5 @@
 // mail-server/server.js
+
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -49,7 +50,7 @@ app.post("/send-quotation", async (req, res) => {
     await sgMail.send(msg);
     res.json({ ok: true, message: "Correo enviado correctamente." });
   } catch (err) {
-    console.error("Error al enviar correo:", err);
+    console.error("Error al enviar correo:", err.response?.body || err.message);
     res.status(500).json({ ok: false, error: "Error al enviar correo." });
   }
 });
