@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Facturación</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <img src="logo-header.png" alt="Logo" class="logo" />
+    <h1>Sistema de Facturación</h1>
+  </header>
+  <section class="info-empresa-cliente">
+    <div class="empresa">
+      <img src="logo-header.png" alt="Logo" class="logo" />
+      <h2>Jotaye Group LLC</h2>
+      <p>Dirección: 11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
+      <p>Tel: +1 (305) 417-2681</p>
+      <p>Email: <a href="mailto:jotayegroupllc@gmail.com">jotayegroupllc@gmail.com</a></p>
+      <p>Web: <a href="https://www.jotayegroupllc.com" target="_blank">www.jotayegroupllc.com</a></p>
+    </div>
+    <div class="cliente">
+      <h3>Datos del Cliente</h3>
+      <label>Nombre:<input type="text" id="clienteNombre" placeholder="Nombre del cliente" /></label>
+      <label>Dirección:<input type="text" id="clienteDireccion" placeholder="Dirección" /></label>
+      <div class="fila">
+        <label>Teléfono:<input type="text" id="clienteTelefono" placeholder="Teléfono" /></label>
+        <label>Email:<input type="email" id="clienteEmail" placeholder="Correo electrónico" /></label>
+      </div>
+      <label>Notas:<textarea id="clienteNotas" rows="3" placeholder="Notas adicionales"></textarea></label>
+    </div>
+  </section>
+  <section class="tabla-items">
+    <h2>Detalle de Productos / Servicios</h2>
+    <table id="tablaItems">
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th>Cantidad</th>
+          <th>Precio Unitario</th>
+          <th>Subtotal</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="btnAgregar">Agregar Item</button>
+  </section>
+  <section class="resumen-factura">
+    <h2>Resumen de Cotización</h2>
+    <div class="linea"><label>Subtotal:</label><span>$<span id="resSubtotal">0.00</span></span></div>
+    <div class="linea"><label>Impuestos (10%):</label><span>$<span id="resImpuestos">0.00</span></span></div>
+    <div class="linea"><label>Descuento (%):</label><input type="number" id="inputDescuento" value="0" min="0" max="100" /></div>
+    <div class="linea"><label>Anticipo ($):</label><input type="number" id="inputAnticipo" value="0" min="0" step="0.01" /></div>
+    <div class="linea total"><label>Total Neto:</label><strong>$<span id="resTotal">0.00</span></strong></div>
+    <div class="acciones">
+      <button id="btnGuardar">Guardar Cotización</button>
+      <button id="btnImprimir">Imprimir</button>
+      <button id="btnFactura">Generar Factura</button>
+      <button id="btnEnviar">Enviar por Correo</button>
+    </div>
+  </section>
+  <script src="script.js"></script>
+</body>
+</html>
