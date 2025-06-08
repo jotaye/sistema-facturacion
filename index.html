@@ -6,22 +6,25 @@
   <title>Sistema de Facturación</title>
   <link rel="icon" type="image/png" href="favicon.ico">
   <link rel="stylesheet" href="style.css" />
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header class="encabezado-claro">
+  <header>
     <img src="logo-header.png" alt="Logo" class="logo" />
     <h1>COTIZACIÓN</h1>
   </header>
 
+  <!-- Sección Superior -->
+  <section class="encabezado-superior">
+    <label>Fecha Emisión: <input type="date" id="fecha" /></label>
+    <label>N° Cotización: <input type="text" id="numero" value="0001" /></label>
+    <label>Buscar Cotización/Factura N°: <input type="text" id="buscar" /> <button id="btnBuscar">Cargar</button></label>
+  </section>
+
   <!-- Datos Empresa y Cliente -->
   <section class="info-empresa-cliente">
-    <div class="empresa">
-      <h3>Jotaye Group LLC</h3>
-      <p>Dirección: 11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
-      <p>Tel: +1 (305) 417-2681</p>
-      <p>Email: <a href="mailto:billing@jotayegroup.com">billing@jotayegroup.com</a></p>
-      <p>Web: <a href="https://www.jotayegroupllc.com" target="_blank">www.jotayegroupllc.com</a></p>
-    </div>
     <div class="cliente">
       <h3>Datos del Cliente</h3>
       <label>Nombre: <input type="text" id="clienteNombre" /></label>
@@ -30,13 +33,13 @@
       <label>e-mail: <input type="email" id="clienteEmail" /></label>
       <label>Teléfono: <input type="text" id="clienteTelefono" /></label>
     </div>
-  </section>
-
-  <!-- Sección Superior -->
-  <section class="encabezado-superior">
-    <label>Fecha Emisión: <input type="date" id="fecha" /></label>
-    <label>N° Cotización: <input type="text" id="numero" value="0001" /></label>
-    <label>Buscar Cotización/Factura N°: <input type="text" id="buscar" /> <button id="btnBuscar">Cargar</button></label>
+    <div class="empresa">
+      <h3>Jotaye Group LLC</h3>
+      <p>Dirección: 11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
+      <p>Tel: +1 (305) 417-2681</p>
+      <p>Email: <a href="mailto:billing@jotayegroup.com">billing@jotayegroup.com</a></p>
+      <p>Web: <a href="https://www.jotayegroupllc.com" target="_blank">www.jotayegroupllc.com</a></p>
+    </div>
   </section>
 
   <!-- Tabla de Ítems -->
@@ -75,3 +78,14 @@
 
   <!-- Botones de acción -->
   <div class="acciones">
+    <button id="btnGuardar" class="btn btn-primary">💾 Guardar Cotización</button>
+    <button id="btnImprimir" class="btn btn-success">🖨️ Imprimir Cotización</button>
+    <button id="btnFacturar" class="btn btn-warning">📄 Facturar (Descargar PDF)</button>
+    <button id="btnReiniciar" class="btn btn-dark">🔄 Reiniciar Cotización</button>
+    <button id="btnEnviar" class="btn btn-success">✉️ Enviar Cotización por Email</button>
+    <button id="btnAprobar" class="btn btn-primary">✅ Aprobar Cotización</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
