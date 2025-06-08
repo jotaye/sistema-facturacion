@@ -1,3 +1,5 @@
+// script.js
+
 // === Inicialización de Firebase ===
 const firebaseConfig = {
   apiKey: "AIzaSyBXBGILqL1JArsbJkKjUhX79veAnvkNcSg",
@@ -8,96 +10,93 @@ const firebaseConfig = {
   appId: "1:1077139821356:web:a831b1d90777b583b0d289",
   measurementId: "G-GG4X805W1R"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// === Variables Globales ===
-let numeroCotizacion = document.getElementById("numero");
-let tablaItems = document.querySelector("#tablaItems tbody");
+// === Variables y Elementos ===
+const tabla = document.getElementById("tablaItems").getElementsByTagName("tbody")[0];
+const btnAgregarFila = document.getElementById("btnAgregarFila");
+const btnEliminarFila = document.getElementById("btnEliminarFila");
+
+const subtotalEl = document.getElementById("resSubtotal");
+const descuentoPorcEl = document.getElementById("inputDescuento");
+const descuentoMontoEl = document.getElementById("resDescuento");
+const impuestoPorcEl = document.getElementById("inputImpuesto");
+const impuestoMontoEl = document.getElementById("resImpuestos");
+const anticipoEl = document.getElementById("inputAnticipo");
+const totalEl = document.getElementById("resTotal");
 
 // === Función para agregar fila ===
-document.getElementById("btnAgregarFila").addEventListener("click", () => {
-  const rowCount = tablaItems.rows.length + 1;
-  const row = tablaItems.insertRow();
+function agregarFila() {
+  const row = tabla.insertRow();
   row.innerHTML = `
-    <td>${rowCount}</td>
-    <td><input type="text" placeholder="Descripción" /></td>
-    <td><input type="number" value="0" /></td>
-    <td><input type="number" value="0.00" /></td>
-    <td class="importe">0.00</td>
-    <td><button class="eliminar">❌</button></td>
+    <td>${tabla.rows.length}</td>
+    <td><input type="text" class="descripcion" /></td>
+    <td><input type="number" class="cantidad" value="1" min="1" /></td>
+    <td><input type="number" class="precio" value="0.00" min="0" step="0.01" /></td>
+    <td class="total">0.00</td>
+    <td><button onclick="eliminarFila(this)">Eliminar</button></td>
   `;
-});
-
-// === Función para eliminar fila ===
-document.getElementById("btnEliminarFila").addEventListener("click", () => {
-  if (tablaItems.rows.length > 1) tablaItems.deleteRow(-1);
-});
-
-// === Calcular Totales ===
-function calcularTotales() {
-  let subtotal = 0;
-  const filas = tablaItems.querySelectorAll("tr");
-  filas.forEach(row => {
-    const cantidad = parseFloat(row.cells[2].querySelector("input").value) || 0;
-    const precio = parseFloat(row.cells[3].querySelector("input").value) || 0;
-    const importe = cantidad * precio;
-    row.cells[4].innerText = importe.toFixed(2);
-    subtotal += importe;
-  });
-
-  const descuentoPorcentaje = parseFloat(document.getElementById("inputDescuento").value) || 0;
-  const descuento = subtotal * (descuentoPorcentaje / 100);
-  const subtotalConDescuento = subtotal - descuento;
-  const impuestoPorcentaje = parseFloat(document.getElementById("inputImpuesto").value) || 0;
-  const impuestos = subtotalConDescuento * (impuestoPorcentaje / 100);
-  const anticipo = parseFloat(document.getElementById("inputAnticipo").value) || 0;
-  const total = subtotalConDescuento + impuestos - anticipo;
-
-  document.getElementById("resSubtotal").innerText = subtotal.toFixed(2);
-  document.getElementById("resImpuestos").innerText = impuestos.toFixed(2);
-  document.getElementById("resTotal").innerText = total.toFixed(2);
+  recalcular();
+  row.querySelectorAll("input").forEach(input => input.addEventListener("input", recalcular));
 }
 
-setInterval(calcularTotales, 500);
+// === Función para eliminar fila ===
+function eliminarFila(btn) {
+  const row = btn.closest("tr");
+  row.remove();
+  recalcular();
+}
 
-// === Guardar Cotización ===
-document.getElementById("btnGuardar").addEventListener("click", async () => {
-  const cotizacion = {
-    numero: numeroCotizacion.value,
-    fecha: document.getElementById("fecha").value,
-    cliente: {
-      nombre: document.getElementById("clienteNombre").value,
-      direccion: document.getElementById("clienteDireccion").value,
-      telefono: document.getElementById("clienteTelefono").value,
-      email: document.getElementById("clienteEmail").value,
-      notas: document.getElementById("clienteNotas").value,
-    },
-    items: [],
-    subtotal: parseFloat(document.getElementById("resSubtotal").innerText),
-    impuestos: parseFloat(document.getElementById("resImpuestos").innerText),
-    total: parseFloat(document.getElementById("resTotal").innerText),
-    estado: "pendiente"
-  };
-
-  tablaItems.querySelectorAll("tr").forEach(row => {
-    const descripcion = row.cells[1].querySelector("input").value;
-    const cantidad = parseFloat(row.cells[2].querySelector("input").value) || 0;
-    const precio = parseFloat(row.cells[3].querySelector("input").value) || 0;
-    cotizacion.items.push({ descripcion, cantidad, precio });
+// === Función para recalcular totales ===
+function recalcular() {
+  let subtotal = 0;
+  tabla.querySelectorAll("tr").forEach(row => {
+    const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
+    const precio = parseFloat(row.querySelector(".precio").value) || 0;
+    const total = cantidad * precio;
+    row.querySelector(".total").innerText = total.toFixed(2);
+    subtotal += total;
   });
+  subtotalEl.innerText = subtotal.toFixed(2);
 
-  await db.collection("cotizaciones").doc(`COT-${cotizacion.numero}`).set(cotizacion);
-  alert("✅ Cotización guardada con éxito");
-});
+  const descuentoPct = parseFloat(descuentoPorcEl.value) || 0;
+  const descuento = subtotal * (descuentoPct / 100);
+  descuentoMontoEl.innerText = descuento.toFixed(2);
 
-// === Imprimir ===
+  const impuestoPct = parseFloat(impuestoPorcEl.value) || 0;
+  const impuesto = (subtotal - descuento) * (impuestoPct / 100);
+  impuestoMontoEl.innerText = impuesto.toFixed(2);
+
+  const anticipo = parseFloat(anticipoEl.value) || 0;
+  const totalNeto = subtotal - descuento + impuesto - anticipo;
+  totalEl.innerText = totalNeto.toFixed(2);
+}
+
+// === Función imprimir ===
 document.getElementById("btnImprimir").addEventListener("click", () => {
   window.print();
 });
 
-// === Reiniciar ===
+// === Función reiniciar formulario ===
 document.getElementById("btnReiniciar").addEventListener("click", () => {
-  window.location.reload();
+  document.querySelectorAll("input, textarea").forEach(el => el.value = "");
+  tabla.innerHTML = "";
+  agregarFila();
+  recalcular();
+});
+
+// === Eventos iniciales ===
+btnAgregarFila.addEventListener("click", agregarFila);
+btnEliminarFila.addEventListener("click", () => {
+  if (tabla.rows.length > 0) tabla.deleteRow(tabla.rows.length - 1);
+  recalcular();
+});
+
+descuentoPorcEl.addEventListener("input", recalcular);
+impuestoPorcEl.addEventListener("input", recalcular);
+anticipoEl.addEventListener("input", recalcular);
+
+document.addEventListener("DOMContentLoaded", () => {
+  agregarFila();
 });
