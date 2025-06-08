@@ -1,6 +1,4 @@
-// script.js
-
-// === Inicialización de Firebase ===
+// === Firebase Inicialización ===
 const firebaseConfig = {
   apiKey: "AIzaSyBXBGILqL1JArsbJkKjUhX79veAnvkNcSg",
   authDomain: "presupuestos-1dd33.firebaseapp.com",
@@ -13,90 +11,80 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// === Variables y Elementos ===
-const tabla = document.getElementById("tablaItems").getElementsByTagName("tbody")[0];
-const btnAgregarFila = document.getElementById("btnAgregarFila");
-const btnEliminarFila = document.getElementById("btnEliminarFila");
+// === Función para agregar una fila ===
+const tablaItems = document.querySelector("#tablaItems tbody");
+let contadorFilas = 0;
 
-const subtotalEl = document.getElementById("resSubtotal");
-const descuentoPorcEl = document.getElementById("inputDescuento");
-const descuentoMontoEl = document.getElementById("resDescuento");
-const impuestoPorcEl = document.getElementById("inputImpuesto");
-const impuestoMontoEl = document.getElementById("resImpuestos");
-const anticipoEl = document.getElementById("inputAnticipo");
-const totalEl = document.getElementById("resTotal");
-
-// === Función para agregar fila ===
 function agregarFila() {
-  const row = tabla.insertRow();
-  row.innerHTML = `
-    <td>${tabla.rows.length}</td>
+  contadorFilas++;
+  const fila = document.createElement("tr");
+  fila.innerHTML = `
+    <td>${contadorFilas}</td>
     <td><input type="text" class="descripcion" /></td>
-    <td><input type="number" class="cantidad" value="1" min="1" /></td>
-    <td><input type="number" class="precio" value="0.00" min="0" step="0.01" /></td>
+    <td><input type="number" class="cantidad" value="0" /></td>
+    <td><input type="number" class="precio" value="0.00" /></td>
     <td class="total">0.00</td>
-    <td><button onclick="eliminarFila(this)">Eliminar</button></td>
+    <td><button class="eliminar">🗑️</button></td>
   `;
-  recalcular();
-  row.querySelectorAll("input").forEach(input => input.addEventListener("input", recalcular));
+  tablaItems.appendChild(fila);
+  actualizarEventos();
 }
 
-// === Función para eliminar fila ===
-function eliminarFila(btn) {
-  const row = btn.closest("tr");
-  row.remove();
-  recalcular();
+// === Función para eliminar la última fila ===
+function eliminarFila() {
+  if (tablaItems.lastElementChild) {
+    tablaItems.removeChild(tablaItems.lastElementChild);
+    contadorFilas--;
+    calcularTotales();
+  }
 }
 
-// === Función para recalcular totales ===
-function recalcular() {
+// === Recalcular Totales ===
+function calcularTotales() {
   let subtotal = 0;
-  tabla.querySelectorAll("tr").forEach(row => {
-    const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
-    const precio = parseFloat(row.querySelector(".precio").value) || 0;
+  document.querySelectorAll("#tablaItems tbody tr").forEach((fila) => {
+    const cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
+    const precio = parseFloat(fila.querySelector(".precio").value) || 0;
     const total = cantidad * precio;
-    row.querySelector(".total").innerText = total.toFixed(2);
+    fila.querySelector(".total").textContent = total.toFixed(2);
     subtotal += total;
   });
-  subtotalEl.innerText = subtotal.toFixed(2);
 
-  const descuentoPct = parseFloat(descuentoPorcEl.value) || 0;
-  const descuento = subtotal * (descuentoPct / 100);
-  descuentoMontoEl.innerText = descuento.toFixed(2);
+  const descuentoPorc = parseFloat(document.querySelector("#inputDescuento").value) || 0;
+  const montoDescuento = subtotal * (descuentoPorc / 100);
+  const subtotalDescontado = subtotal - montoDescuento;
 
-  const impuestoPct = parseFloat(impuestoPorcEl.value) || 0;
-  const impuesto = (subtotal - descuento) * (impuestoPct / 100);
-  impuestoMontoEl.innerText = impuesto.toFixed(2);
+  const impuestoPorc = parseFloat(document.querySelector("#inputImpuesto").value) || 0;
+  const montoImpuesto = subtotalDescontado * (impuestoPorc / 100);
 
-  const anticipo = parseFloat(anticipoEl.value) || 0;
-  const totalNeto = subtotal - descuento + impuesto - anticipo;
-  totalEl.innerText = totalNeto.toFixed(2);
+  const anticipo = parseFloat(document.querySelector("#inputAnticipo").value) || 0;
+  const totalNeto = subtotalDescontado + montoImpuesto - anticipo;
+
+  document.querySelector("#resSubtotal").textContent = subtotal.toFixed(2);
+  document.querySelector("#resDescuento").textContent = montoDescuento.toFixed(2);
+  document.querySelector("#resImpuestos").textContent = montoImpuesto.toFixed(2);
+  document.querySelector("#resTotal").textContent = totalNeto.toFixed(2);
 }
 
-// === Función imprimir ===
-document.getElementById("btnImprimir").addEventListener("click", () => {
-  window.print();
-});
+// === Eventos ===
+function actualizarEventos() {
+  document.querySelectorAll(".cantidad, .precio").forEach(input => {
+    input.removeEventListener("input", calcularTotales);
+    input.addEventListener("input", calcularTotales);
+  });
+  document.querySelectorAll(".eliminar").forEach(btn => {
+    btn.onclick = function () {
+      btn.closest("tr").remove();
+      calcularTotales();
+    }
+  });
+}
 
-// === Función reiniciar formulario ===
-document.getElementById("btnReiniciar").addEventListener("click", () => {
-  document.querySelectorAll("input, textarea").forEach(el => el.value = "");
-  tabla.innerHTML = "";
-  agregarFila();
-  recalcular();
-});
+document.querySelector("#btnAgregarFila").addEventListener("click", agregarFila);
+document.querySelector("#btnEliminarFila").addEventListener("click", eliminarFila);
+document.querySelector("#inputDescuento").addEventListener("input", calcularTotales);
+document.querySelector("#inputImpuesto").addEventListener("input", calcularTotales);
+document.querySelector("#inputAnticipo").addEventListener("input", calcularTotales);
 
-// === Eventos iniciales ===
-btnAgregarFila.addEventListener("click", agregarFila);
-btnEliminarFila.addEventListener("click", () => {
-  if (tabla.rows.length > 0) tabla.deleteRow(tabla.rows.length - 1);
-  recalcular();
-});
-
-descuentoPorcEl.addEventListener("input", recalcular);
-impuestoPorcEl.addEventListener("input", recalcular);
-anticipoEl.addEventListener("input", recalcular);
-
-document.addEventListener("DOMContentLoaded", () => {
-  agregarFila();
-});
+// === Inicializar con una fila por defecto ===
+agregarFila();
