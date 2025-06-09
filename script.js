@@ -106,11 +106,17 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     }
   };
 
+  // ✅ Agregamos total por cada ítem
   tabla.querySelectorAll("tr").forEach(row => {
+    const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
+    const precio = parseFloat(row.querySelector(".precio").value) || 0;
+    const totalItem = cantidad * precio;
+
     cotizacion.items.push({
       descripcion: row.querySelector(".descripcion").value,
-      cantidad: row.querySelector(".cantidad").value,
-      precio: row.querySelector(".precio").value
+      cantidad: cantidad.toString(),
+      precio: precio.toFixed(2),
+      total: totalItem.toFixed(2)
     });
   });
 
