@@ -139,21 +139,37 @@ document.getElementById("btnAprobar").addEventListener("click", () => {
   alert("✅ Cotización aprobada para facturación.");
 });
 
-// === Enviar por Email ===
+// === Enviar por Email (Render + SendGrid) ===
 document.getElementById("btnEnviar").addEventListener("click", () => {
+  const numero = document.getElementById("numero").value;
+  const nombre = document.getElementById("clienteNombre").value;
   const email = document.getElementById("clienteEmail").value;
-  if (!email) return alert("❗ Por favor ingresa un email válido del cliente.");
+  const total = document.getElementById("resTotal").innerText;
+
+  if (!email || !numero || !nombre) {
+    alert("❗ Faltan datos requeridos.");
+    return;
+  }
 
   fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: email,
-      nombre: document.getElementById("clienteNombre").value,
-      numero: document.getElementById("numero").value,
-      total: document.getElementById("resTotal").innerText
-    })
+      numero,
+      to: email,
+      subject: "Jotaye Group LLC",
+      texto: `Hola ${nombre}, su cotización número ${numero} tiene un total estimado de $${total}.`
+    }),
   })
-    .then(res => res.ok ? alert("📨 Cotización enviada por correo electrónico.") : alert("❌ Falló el envío por correo."))
-    .catch(err => alert("❌ Error al enviar: " + err));
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.ok) {
+        alert("📨 Cotización enviada por correo electrónico.");
+      } else {
+        alert("❌ Falló el envío por correo: " + data.error);
+      }
+    })
+    .catch((err) => {
+      alert("❌ Error de conexión: " + err);
+    });
 });
