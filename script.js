@@ -141,7 +141,7 @@ document.getElementById("btnGuardar").addEventListener("click", async () => {
 
 // === Buscar (CORREGIDA) ===
 document.getElementById("btnBuscar").addEventListener("click", async () => {
-  const num = document.getElementById("buscar").value; // ✅ Campo corregido
+  const num = document.getElementById("buscar").value;
   if (!num) return alert("❗ Ingresa el número de cotización o factura.");
 
   const ref = num.startsWith("FAC") ? "facturas" : "cotizaciones";
@@ -203,11 +203,20 @@ async function enviarEmailCotizacion(data, tipo) {
 // === Botones ===
 document.getElementById("btnImprimir").addEventListener("click", () => window.print());
 document.getElementById("btnReiniciar").addEventListener("click", () => location.reload());
+
 document.getElementById("btnEnviar").addEventListener("click", async () => {
+  const btn = document.getElementById("btnEnviar");
+  btn.disabled = true;
+  btn.textContent = "Enviando... 📤";
+
   const datos = obtenerDatosCotizacion();
   datos.numero = document.getElementById("numero").value;
   await enviarEmailCotizacion(datos, "cotizacion");
+
+  btn.disabled = false;
+  btn.textContent = "Enviar Cotización por Email";
 });
+
 document.getElementById("btnAprobar").addEventListener("click", async () => {
   const datos = obtenerDatosCotizacion();
   const numero = await generarNumero("factura");
@@ -219,6 +228,7 @@ document.getElementById("btnAprobar").addEventListener("click", async () => {
     alert("✅ Factura generada y enviada.");
   });
 });
+
 document.getElementById("btnFacturar").addEventListener("click", async () => {
   const datos = obtenerDatosCotizacion();
   const numero = await generarNumero("factura");
