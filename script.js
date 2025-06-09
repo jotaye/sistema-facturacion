@@ -127,31 +127,6 @@ function obtenerDatosCotizacion() {
   return cotizacion;
 }
 
-async function generarPDFBase64() {
-  const cotizacionDiv = document.body;
-  const canvas = await html2canvas(cotizacionDiv);
-  const imgData = canvas.toDataURL("image/png");
-
-  const pdf = new jsPDF("p", "pt", "a4");
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const imgWidth = pageWidth;
-  const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-  let position = 0;
-  if (imgHeight < pageHeight) {
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-  } else {
-    while (position < imgHeight) {
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      position -= pageHeight;
-      if (position < imgHeight) pdf.addPage();
-    }
-  }
-
-  return pdf.output("datauristring").split(",")[1];
-}
-
 // === Guardar Cotización ===
 document.getElementById("btnGuardar").addEventListener("click", async () => {
   const datos = obtenerDatosCotizacion();
@@ -164,9 +139,9 @@ document.getElementById("btnGuardar").addEventListener("click", async () => {
     .catch(err => alert("❌ Error: " + err));
 });
 
-// === Buscar ===
+// === Buscar (CORREGIDA) ===
 document.getElementById("btnBuscar").addEventListener("click", async () => {
-  const num = document.getElementById("numero").value;
+  const num = document.getElementById("buscar").value; // ✅ Campo corregido
   if (!num) return alert("❗ Ingresa el número de cotización o factura.");
 
   const ref = num.startsWith("FAC") ? "facturas" : "cotizaciones";
@@ -210,8 +185,6 @@ async function enviarEmailCotizacion(data, tipo) {
     ? "Gracias por su aprobación. Adjuntamos su factura."
     : "Adjuntamos la cotización solicitada.";
 
-  const pdfBase64 = await generarPDFBase64();
-
   fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -220,7 +193,7 @@ async function enviarEmailCotizacion(data, tipo) {
       to: to,
       subject: asunto,
       texto: mensaje,
-      pdfBase64: pdfBase64
+      pdfBase64: null
     })
   })
     .then(res => res.ok ? alert("📨 Correo enviado.") : alert("❌ Error al enviar."))
