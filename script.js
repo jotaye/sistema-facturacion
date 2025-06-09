@@ -17,17 +17,6 @@ const tabla = document.querySelector("#tablaItems tbody");
 document.getElementById("btnAgregarFila").addEventListener("click", agregarFila);
 document.getElementById("btnEliminarFila").addEventListener("click", eliminarFila);
 
-document.addEventListener("DOMContentLoaded", generarNumeroAutomatico);
-
-async function generarNumeroAutomatico() {
-  const hoy = new Date();
-  const fecha = hoy.toISOString().split("T")[0].replace(/-/g, "");
-  const snapshot = await db.collection("cotizaciones").where("numero", ">=", `COT-${fecha}-0000`).where("numero", "<=", `COT-${fecha}-9999`).get();
-  const cantidad = snapshot.size + 1;
-  const numero = `COT-${fecha}-${String(cantidad).padStart(4, "0")}`;
-  document.getElementById("numero").value = numero;
-}
-
 function agregarFila() {
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -82,15 +71,14 @@ function recalcularTotales() {
   document.getElementById(id).addEventListener("input", recalcularTotales)
 );
 
-document.getElementById("btnGuardar").addEventListener("click", guardarCotizacion);
-
-document.getElementById("btnBuscar").addEventListener("click", async () => {
-  const buscar = document.getElementById("buscar").value.trim();
-  if (!buscar) return alert("🔎 Ingresa un número para buscar");
-  const doc = await db.collection("cotizaciones").doc(buscar).get();
-  if (!doc.exists) return alert("❌ No encontrado");
-  cargarCotizacionEnFormulario(doc.data());
-});
+async function generarNumero(tipo) {
+  const hoy = new Date();
+  const fecha = hoy.toISOString().split("T")[0].replace(/-/g, "");
+  const prefix = tipo === "factura" ? "FAC" : "COT";
+  const snapshot = await db.collection(tipo === "factura" ? "facturas" : "cotizaciones").get();
+  const nuevo = snapshot.size + 1;
+  return `${prefix}-${fecha}-${String(nuevo).padStart(4, '0')}`;
+}
 
 function obtenerDatosCotizacion() {
   const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
@@ -103,7 +91,6 @@ function obtenerDatosCotizacion() {
 
   const cotizacion = {
     fecha: document.getElementById("fecha").value,
-    numero: document.getElementById("numero").value,
     cliente: {
       nombre: document.getElementById("clienteNombre").value,
       tipo: document.getElementById("clienteTipo").value,
@@ -140,16 +127,33 @@ function obtenerDatosCotizacion() {
   return cotizacion;
 }
 
-function guardarCotizacion() {
-  const cot = obtenerDatosCotizacion();
-  db.collection("cotizaciones").doc(cot.numero).set(cot)
-    .then(() => alert("✅ Cotización guardada con ID personalizado"))
-    .catch(err => alert("❌ Error al guardar: " + err));
-}
+// === Guardar Cotización ===
+document.getElementById("btnGuardar").addEventListener("click", async () => {
+  const datos = obtenerDatosCotizacion();
+  const numero = await generarNumero("cotizacion");
+  datos.numero = numero;
+  document.getElementById("numero").value = numero;
 
-function cargarCotizacionEnFormulario(data) {
+  db.collection("cotizaciones").doc(numero).set(datos)
+    .then(() => alert("✅ Cotización guardada con número " + numero))
+    .catch(err => alert("❌ Error: " + err));
+});
+
+// === Buscar ===
+document.getElementById("btnBuscar").addEventListener("click", () => {
+  const num = document.getElementById("numero").value;
+  if (!num) return alert("❗ Ingresa el número de cotización o factura.");
+
+  const ref = num.startsWith("FAC") ? "facturas" : "cotizaciones";
+  db.collection(ref).doc(num).get().then(doc => {
+    if (!doc.exists) return alert("❌ No encontrada.");
+    cargarDatos(doc.data(), num);
+  });
+});
+
+function cargarDatos(data, numero) {
+  document.getElementById("numero").value = numero;
   document.getElementById("fecha").value = data.fecha;
-  document.getElementById("numero").value = data.numero;
   document.getElementById("clienteNombre").value = data.cliente.nombre;
   document.getElementById("clienteTipo").value = data.cliente.tipo;
   document.getElementById("clienteDireccion").value = data.cliente.direccion;
@@ -157,20 +161,12 @@ function cargarCotizacionEnFormulario(data) {
   document.getElementById("clienteTelefono").value = data.cliente.telefono;
 
   tabla.innerHTML = "";
-  data.items.forEach((item, index) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td><input type="text" class="descripcion" value="${item.descripcion}"/></td>
-      <td><input type="number" class="cantidad" value="${item.cantidad}" min="1"/></td>
-      <td><input type="number" class="precio" value="${item.precio}" step="0.01"/></td>
-      <td class="total">$${item.total}</td>
-      <td><button class="btnEliminar">🗑️</button></td>
-    `;
-    tabla.appendChild(row);
-    row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
-    row.querySelector(".precio").addEventListener("input", recalcularTotales);
-    row.querySelector(".btnEliminar").addEventListener("click", () => row.remove());
+  data.items.forEach(item => {
+    agregarFila();
+    const fila = tabla.lastChild;
+    fila.querySelector(".descripcion").value = item.descripcion;
+    fila.querySelector(".cantidad").value = item.cantidad;
+    fila.querySelector(".precio").value = item.precio;
   });
 
   document.getElementById("inputDescuento").value = data.resumen.porcentajeDescuento;
@@ -178,3 +174,48 @@ function cargarCotizacionEnFormulario(data) {
   document.getElementById("inputAnticipo").value = data.resumen.anticipo;
   recalcularTotales();
 }
+
+// === Enviar ===
+async function enviarEmailCotizacion(data, tipo) {
+  const to = data.cliente.email;
+  if (!to) return alert("❗ Email no válido");
+
+  const asunto = tipo === "factura" ? "Factura" : "Cotización";
+  const mensaje = tipo === "factura"
+    ? "Gracias por su aprobación. Adjuntamos su factura."
+    : "Adjuntamos la cotización solicitada.";
+
+  fetch("https://mail-server-byrb.onrender.com/send-quotation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      numero: data.numero,
+      to: to,
+      subject: asunto,
+      texto: mensaje,
+      pdfBase64: null // ⚠️ Aún por implementar
+    })
+  })
+    .then(res => res.ok ? alert("📨 Correo enviado.") : alert("❌ Error al enviar."))
+    .catch(err => alert("❌ Error backend: " + err));
+}
+
+// === Botones ===
+document.getElementById("btnImprimir").addEventListener("click", () => window.print());
+document.getElementById("btnReiniciar").addEventListener("click", () => location.reload());
+document.getElementById("btnEnviar").addEventListener("click", async () => {
+  const datos = obtenerDatosCotizacion();
+  datos.numero = document.getElementById("numero").value;
+  await enviarEmailCotizacion(datos, "cotizacion");
+});
+document.getElementById("btnAprobar").addEventListener("click", async () => {
+  const datos = obtenerDatosCotizacion();
+  const numero = await generarNumero("factura");
+  datos.numero = numero;
+  document.getElementById("numero").value = numero;
+
+  db.collection("facturas").doc(numero).set(datos).then(() => {
+    enviarEmailCotizacion(datos, "factura");
+    alert("✅ Factura generada y enviada.");
+  });
+});
