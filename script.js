@@ -139,9 +139,9 @@ document.getElementById("btnGuardar").addEventListener("click", async () => {
     .catch(err => alert("❌ Error: " + err));
 });
 
-// === Buscar ===
+// === Buscar (CORREGIDA) ===
 document.getElementById("btnBuscar").addEventListener("click", async () => {
-  const num = document.getElementById("numero").value;
+  const num = document.getElementById("buscar").value; // ✅ Campo corregido
   if (!num) return alert("❗ Ingresa el número de cotización o factura.");
 
   const ref = num.startsWith("FAC") ? "facturas" : "cotizaciones";
