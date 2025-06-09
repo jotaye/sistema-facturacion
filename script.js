@@ -144,7 +144,7 @@ document.getElementById("btnEnviar").addEventListener("click", () => {
   const email = document.getElementById("clienteEmail").value;
   if (!email) return alert("❗ Por favor ingresa un email válido del cliente.");
 
-  fetch("https://sistema-facturacion-server.onrender.com/send-quotation", {
+  fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
