@@ -12,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// === Agregar fila ===
+// === Tabla ===
 const tabla = document.querySelector("#tablaItems tbody");
 document.getElementById("btnAgregarFila").addEventListener("click", agregarFila);
 document.getElementById("btnEliminarFila").addEventListener("click", eliminarFila);
@@ -44,7 +44,7 @@ function eliminarFila() {
   }
 }
 
-// === Cálculo de totales ===
+// === Recalcular totales ===
 function recalcularTotales() {
   let subtotal = 0;
   tabla.querySelectorAll("tr").forEach(row => {
@@ -68,12 +68,12 @@ function recalcularTotales() {
   document.getElementById("resTotal").innerText = totalNeto.toFixed(2);
 }
 
-// === Eventos para recalcular al cambiar inputs ===
+// === Escucha de inputs ===
 document.getElementById("inputDescuento").addEventListener("input", recalcularTotales);
 document.getElementById("inputImpuesto").addEventListener("input", recalcularTotales);
 document.getElementById("inputAnticipo").addEventListener("input", recalcularTotales);
 
-// === Guardar cotización en Firebase ===
+// === Guardar en Firebase ===
 document.getElementById("btnGuardar").addEventListener("click", () => {
   const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
   const descuentoPct = parseFloat(document.getElementById("inputDescuento").value) || 0;
@@ -106,12 +106,10 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     }
   };
 
-  // ✅ Agregamos total por cada ítem
   tabla.querySelectorAll("tr").forEach(row => {
     const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
     const precio = parseFloat(row.querySelector(".precio").value) || 0;
     const totalItem = cantidad * precio;
-
     cotizacion.items.push({
       descripcion: row.querySelector(".descripcion").value,
       cantidad: cantidad.toString(),
@@ -125,7 +123,55 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     .catch(err => alert("❌ Error al guardar: " + err));
 });
 
-// === Imprimir ===
+// === Imprimir Cotización ===
 document.getElementById("btnImprimir").addEventListener("click", () => {
   window.print();
+});
+
+// === Facturar: Descargar PDF (por ahora usa print como sustituto)
+document.getElementById("btnFacturar").addEventListener("click", () => {
+  window.print(); // más adelante se puede usar html2pdf.js o similar
+});
+
+// === Reiniciar Cotización ===
+document.getElementById("btnReiniciar").addEventListener("click", () => {
+  if (confirm("¿Seguro que deseas reiniciar la cotización?")) {
+    window.location.reload();
+  }
+});
+
+// === Aprobar Cotización ===
+document.getElementById("btnAprobar").addEventListener("click", () => {
+  alert("✅ Cotización aprobada");
+  console.log("Cotización aprobada");
+});
+
+// === Enviar Cotización por Email (requiere backend activo)
+document.getElementById("btnEnviar").addEventListener("click", () => {
+  const email = document.getElementById("clienteEmail").value;
+  if (!email) return alert("⚠️ Ingresa un correo de cliente válido.");
+
+  const payload = {
+    email,
+    html: document.body.innerHTML
+  };
+
+  fetch("/send-quotation", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => {
+      if (res.ok) {
+        alert("✉️ Cotización enviada por email.");
+      } else {
+        alert("❌ Error al enviar el email.");
+      }
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      alert("❌ Fallo en la conexión con el servidor.");
+    });
 });
