@@ -74,14 +74,12 @@ function recalcularTotales() {
 );
 
 // === Guardar Cotización ===
-document.getElementById("btnGuardar").addEventListener("click", guardarCotizacion);
-
-function guardarCotizacion() {
-  const cotizacion = obtenerDatosCotizacion();
-  db.collection("cotizaciones").add(cotizacion)
+document.getElementById("btnGuardar").addEventListener("click", () => {
+  const data = obtenerDatosCotizacion();
+  db.collection("cotizaciones").doc(data.numero).set(data)
     .then(() => alert("✅ Cotización guardada correctamente"))
     .catch(err => alert("❌ Error al guardar: " + err));
-}
+});
 
 function obtenerDatosCotizacion() {
   const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
@@ -147,9 +145,20 @@ document.getElementById("btnAprobar").addEventListener("click", () => {
   const datosFactura = obtenerDatosCotizacion();
   datosFactura.tipo = "factura";
 
-  db.collection("facturas").add(datosFactura).then(() => {
+  db.collection("facturas").doc(datosFactura.numero).set(datosFactura).then(() => {
     enviarEmailCotizacion(datosFactura, "factura");
     alert("✅ Factura generada y enviada al cliente.");
+  });
+});
+
+// === Facturar (Descargar PDF y enviar) ===
+document.getElementById("btnFacturar").addEventListener("click", () => {
+  const datosFactura = obtenerDatosCotizacion();
+  datosFactura.tipo = "factura";
+
+  db.collection("facturas").doc(datosFactura.numero).set(datosFactura).then(() => {
+    enviarEmailCotizacion(datosFactura, "factura");
+    alert("📄 PDF generado y factura enviada.");
   });
 });
 
@@ -158,19 +167,19 @@ function enviarEmailCotizacion(data, tipo) {
   if (!to) return alert("❗ Email del cliente no válido");
 
   const asunto = tipo === "factura" ? "Factura" : "Cotización";
-  const mensaje = tipo === "factura" ?
-    "Adjunto encontrará la factura aprobada con el total correspondiente." :
-    "Adjunto encontrará la cotización solicitada con el total estimado.";
+  const mensaje = tipo === "factura"
+    ? `Hola ${data.cliente.nombre}, su factura número ${data.numero} ha sido generada.`
+    : `Hola ${data.cliente.nombre}, su cotización número ${data.numero} tiene un total estimado de $${data.resumen.total}.`;
 
   fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       numero: data.numero,
-      to: to,
-      subject: asunto,
+      to,
+      subject: tipo === "factura" ? `Factura – Jotaye Group LLC` : `Cotización – Jotaye Group LLC`,
       texto: mensaje,
-      pdfBase64: null // ⛔ pendiente de integrar generación real del PDF
+      pdfBase64: null // ← PDF aún no generado
     })
   })
     .then(res => res.ok ? alert(`📨 ${asunto} enviada al correo.`) : alert("❌ Error al enviar correo."))
