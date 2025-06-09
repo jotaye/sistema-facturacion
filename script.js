@@ -8,6 +8,7 @@ const firebaseConfig = {
   appId: "1:1077139821356:web:a831b1d90777b583b0d289",
   measurementId: "G-GG4X805W1R"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -67,16 +68,22 @@ function recalcularTotales() {
   document.getElementById("resTotal").innerText = totalNeto.toFixed(2);
 }
 
-// === Recalcular al cambiar inputs ===
-["inputDescuento", "inputImpuesto", "inputAnticipo"].forEach(id => {
-  document.getElementById(id).addEventListener("input", recalcularTotales);
-});
+// === Eventos ===
+["inputDescuento", "inputImpuesto", "inputAnticipo"].forEach(id =>
+  document.getElementById(id).addEventListener("input", recalcularTotales)
+);
 
-// === Guardar cotización ===
-document.getElementById("btnGuardar").addEventListener("click", () => {
-  const numero = document.getElementById("numero").value.trim();
-  if (!numero) return alert("❗ Debes asignar un número de cotización.");
+// === Guardar Cotización ===
+document.getElementById("btnGuardar").addEventListener("click", guardarCotizacion);
 
+function guardarCotizacion() {
+  const cotizacion = obtenerDatosCotizacion();
+  db.collection("cotizaciones").add(cotizacion)
+    .then(() => alert("✅ Cotización guardada correctamente"))
+    .catch(err => alert("❌ Error al guardar: " + err));
+}
+
+function obtenerDatosCotizacion() {
   const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
   const descuentoPct = parseFloat(document.getElementById("inputDescuento").value) || 0;
   const montoDescuento = parseFloat(document.getElementById("resDescuento").innerText) || 0;
@@ -87,7 +94,7 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
 
   const cotizacion = {
     fecha: document.getElementById("fecha").value,
-    numero,
+    numero: document.getElementById("numero").value,
     cliente: {
       nombre: document.getElementById("clienteNombre").value,
       tipo: document.getElementById("clienteTipo").value,
@@ -112,6 +119,7 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
     const precio = parseFloat(row.querySelector(".precio").value) || 0;
     const totalItem = cantidad * precio;
+
     cotizacion.items.push({
       descripcion: row.querySelector(".descripcion").value,
       cantidad: cantidad.toString(),
@@ -120,87 +128,51 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     });
   });
 
-  db.collection("cotizaciones").doc(numero).set(cotizacion)
-    .then(() => alert("✅ Cotización guardada correctamente."))
-    .catch(err => alert("❌ Error al guardar: " + err.message));
-});
-
-// === Buscar cotización ===
-document.getElementById("btnBuscar").addEventListener("click", () => {
-  const buscar = document.getElementById("buscar").value.trim();
-  if (!buscar) return alert("❗ Ingresa un número de cotización o factura.");
-  db.collection("cotizaciones").doc(buscar).get()
-    .then(doc => {
-      if (!doc.exists) return alert("❌ Cotización no encontrada.");
-      const data = doc.data();
-      document.getElementById("numero").value = data.numero;
-      document.getElementById("fecha").value = data.fecha || "";
-      document.getElementById("clienteNombre").value = data.cliente.nombre || "";
-      document.getElementById("clienteTipo").value = data.cliente.tipo || "";
-      document.getElementById("clienteDireccion").value = data.cliente.direccion || "";
-      document.getElementById("clienteEmail").value = data.cliente.email || "";
-      document.getElementById("clienteTelefono").value = data.cliente.telefono || "";
-      document.getElementById("inputDescuento").value = data.resumen.porcentajeDescuento || 0;
-      document.getElementById("inputImpuesto").value = data.resumen.porcentajeImpuesto || 0;
-      document.getElementById("inputAnticipo").value = data.resumen.anticipo || 0;
-
-      tabla.innerHTML = "";
-      data.items.forEach((item, i) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${i + 1}</td>
-          <td><input type="text" class="descripcion" value="${item.descripcion}" /></td>
-          <td><input type="number" class="cantidad" value="${item.cantidad}" /></td>
-          <td><input type="number" class="precio" value="${item.precio}" /></td>
-          <td class="total">$${item.total}</td>
-          <td><button class="btnEliminar">🗑️</button></td>
-        `;
-        tabla.appendChild(row);
-        row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
-        row.querySelector(".precio").addEventListener("input", recalcularTotales);
-        row.querySelector(".btnEliminar").addEventListener("click", () => {
-          row.remove();
-          recalcularTotales();
-        });
-      });
-
-      recalcularTotales();
-    })
-    .catch(err => alert("❌ Error al buscar: " + err.message));
-});
+  return cotizacion;
+}
 
 // === Imprimir ===
-document.getElementById("btnImprimir").addEventListener("click", () => {
-  window.print();
-});
+document.getElementById("btnImprimir").addEventListener("click", () => window.print());
 
-// === Reiniciar ===
-document.getElementById("btnReiniciar").addEventListener("click", () => {
-  location.reload();
-});
+// === Reiniciar Cotización ===
+document.getElementById("btnReiniciar").addEventListener("click", () => location.reload());
 
-// === Enviar por email ===
+// === Enviar por Email ===
 document.getElementById("btnEnviar").addEventListener("click", () => {
-  const email = document.getElementById("clienteEmail").value;
-  if (!email) return alert("❗ Ingresa un email válido del cliente.");
+  enviarEmailCotizacion(obtenerDatosCotizacion(), "cotizacion");
+});
+
+// === Aprobar Cotización ===
+document.getElementById("btnAprobar").addEventListener("click", () => {
+  const datosFactura = obtenerDatosCotizacion();
+  datosFactura.tipo = "factura";
+
+  db.collection("facturas").add(datosFactura).then(() => {
+    enviarEmailCotizacion(datosFactura, "factura");
+    alert("✅ Factura generada y enviada al cliente.");
+  });
+});
+
+function enviarEmailCotizacion(data, tipo) {
+  const to = data.cliente.email;
+  if (!to) return alert("❗ Email del cliente no válido");
+
+  const asunto = tipo === "factura" ? "Factura" : "Cotización";
+  const mensaje = tipo === "factura" ?
+    "Adjunto encontrará la factura aprobada con el total correspondiente." :
+    "Adjunto encontrará la cotización solicitada con el total estimado.";
 
   fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      numero: document.getElementById("numero").value,
-      to: email,
-      subject: "Cotización Jotaye Group LLC",
-      texto: `Adjunto encontrará su cotización. Total estimado: $${document.getElementById("resTotal").innerText}`,
-      pdfBase64: null // Pendiente: adjuntar PDF real si lo deseas
+      numero: data.numero,
+      to: to,
+      subject: asunto,
+      texto: mensaje,
+      pdfBase64: null // ⛔ pendiente de integrar generación real del PDF
     })
   })
-    .then(res => res.ok ? alert("📨 Cotización enviada por correo.") : alert("❌ Falló el envío."))
-    .catch(err => alert("❌ Error al enviar correo: " + err));
-});
-
-// === Aprobar ===
-document.getElementById("btnAprobar").addEventListener("click", () => {
-  alert("✅ Cotización aprobada. Generando factura... (pendiente PDF)");
-  // Aquí agregar: generación de PDF y guardado en Firebase 'facturas'
-});
+    .then(res => res.ok ? alert(`📨 ${asunto} enviada al correo.`) : alert("❌ Error al enviar correo."))
+    .catch(err => alert("❌ Fallo conexión backend: " + err));
+}
