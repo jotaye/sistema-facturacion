@@ -30,7 +30,10 @@ function agregarFila() {
   tabla.appendChild(row);
   row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
   row.querySelector(".precio").addEventListener("input", recalcularTotales);
-  row.querySelector(".btnEliminar").addEventListener("click", () => row.remove());
+  row.querySelector(".btnEliminar").addEventListener("click", () => {
+    row.remove();
+    recalcularTotales();
+  });
   recalcularTotales();
 }
 
@@ -72,6 +75,14 @@ document.getElementById("inputAnticipo").addEventListener("input", recalcularTot
 
 // === Guardar cotización en Firebase ===
 document.getElementById("btnGuardar").addEventListener("click", () => {
+  const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
+  const descuentoPct = parseFloat(document.getElementById("inputDescuento").value) || 0;
+  const montoDescuento = parseFloat(document.getElementById("resDescuento").innerText) || 0;
+  const impuestoPct = parseFloat(document.getElementById("inputImpuesto").value) || 0;
+  const montoImpuesto = parseFloat(document.getElementById("resImpuestos").innerText) || 0;
+  const anticipo = parseFloat(document.getElementById("inputAnticipo").value) || 0;
+  const total = parseFloat(document.getElementById("resTotal").innerText) || 0;
+
   const cotizacion = {
     fecha: document.getElementById("fecha").value,
     numero: document.getElementById("numero").value,
@@ -84,11 +95,14 @@ document.getElementById("btnGuardar").addEventListener("click", () => {
     },
     items: [],
     resumen: {
-      subtotal: document.getElementById("resSubtotal").innerText,
-      descuento: document.getElementById("resDescuento").innerText,
-      impuestos: document.getElementById("resImpuestos").innerText,
-      anticipo: document.getElementById("inputAnticipo").value,
-      total: document.getElementById("resTotal").innerText
+      subtotal: subtotal.toFixed(2),
+      porcentajeDescuento: descuentoPct.toFixed(2),
+      descuento: montoDescuento.toFixed(2),
+      porcentajeImpuesto: impuestoPct.toFixed(2),
+      impuestos: montoImpuesto.toFixed(2),
+      totalSinImpuesto: (subtotal - montoDescuento).toFixed(2),
+      anticipo: anticipo.toFixed(2),
+      total: total.toFixed(2)
     }
   };
 
