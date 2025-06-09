@@ -230,4 +230,3 @@ document.getElementById("btnFacturar").addEventListener("click", async () => {
     window.print();
   });
 });
-
