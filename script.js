@@ -219,3 +219,15 @@ document.getElementById("btnAprobar").addEventListener("click", async () => {
     alert("✅ Factura generada y enviada.");
   });
 });
+
+document.getElementById("btnFacturar").addEventListener("click", async () => {
+  const datos = obtenerDatosCotizacion();
+  const numero = await generarNumero("factura");
+  datos.numero = numero;
+  document.getElementById("numero").value = numero;
+
+  db.collection("facturas").doc(numero).set(datos).then(() => {
+    alert("✅ Factura generada. Puedes imprimirla ahora.");
+    window.print();
+  });
+});
