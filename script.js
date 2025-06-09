@@ -140,15 +140,15 @@ document.getElementById("btnGuardar").addEventListener("click", async () => {
 });
 
 // === Buscar ===
-document.getElementById("btnBuscar").addEventListener("click", () => {
+document.getElementById("btnBuscar").addEventListener("click", async () => {
   const num = document.getElementById("numero").value;
   if (!num) return alert("❗ Ingresa el número de cotización o factura.");
 
   const ref = num.startsWith("FAC") ? "facturas" : "cotizaciones";
-  db.collection(ref).doc(num).get().then(doc => {
-    if (!doc.exists) return alert("❌ No encontrada.");
-    cargarDatos(doc.data(), num);
-  });
+  const docRef = db.collection(ref).doc(num);
+  const docSnap = await docRef.get();
+  if (!docSnap.exists) return alert("❌ No encontrada.");
+  cargarDatos(docSnap.data(), num);
 });
 
 function cargarDatos(data, numero) {
@@ -193,7 +193,7 @@ async function enviarEmailCotizacion(data, tipo) {
       to: to,
       subject: asunto,
       texto: mensaje,
-      pdfBase64: null // ⚠️ Aún por implementar
+      pdfBase64: null
     })
   })
     .then(res => res.ok ? alert("📨 Correo enviado.") : alert("❌ Error al enviar."))
@@ -219,7 +219,6 @@ document.getElementById("btnAprobar").addEventListener("click", async () => {
     alert("✅ Factura generada y enviada.");
   });
 });
-
 document.getElementById("btnFacturar").addEventListener("click", async () => {
   const datos = obtenerDatosCotizacion();
   const numero = await generarNumero("factura");
