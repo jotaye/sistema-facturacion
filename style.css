@@ -79,6 +79,10 @@ section {
   font-size: 14px;
 }
 
+.tabla-items .total {
+  font-weight: bold; /* 👈 Negrita para columna TOTAL */
+}
+
 .acciones-filas {
   margin-top: 10px;
   display: flex;
