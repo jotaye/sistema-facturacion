@@ -193,7 +193,9 @@ async function enviarEmailCotizacion(data, tipo) {
       to: to,
       subject: asunto,
       texto: mensaje,
-      pdfBase64: null
+      pdfBase64: null,
+      tipo: tipo,
+      datos: data
     })
   })
     .then(res => res.ok ? alert("📨 Correo enviado.") : alert("❌ Error al enviar."))
