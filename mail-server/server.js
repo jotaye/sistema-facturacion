@@ -1,4 +1,4 @@
-// mail-server/server.js
+// mail-server/server.js actualizado con cuerpo de email personalizado para facturas
 
 import express from "express";
 import cors from "cors";
@@ -17,67 +17,47 @@ app.use(bodyParser.json());
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 app.post("/send-quotation", async (req, res) => {
-  const { numero, to, subject, texto, pdfBase64, data } = req.body;
+  const { numero, to, subject, texto, pdfBase64, tipo, datos } = req.body;
 
-  if (!numero || !to || !subject || !texto) {
+  if (!numero || !to || !subject || !texto || !tipo) {
     return res.status(400).json({ ok: false, error: "Faltan datos requeridos." });
   }
 
-  // Detectar tipo de documento por el subject
-  const isFactura = subject.toLowerCase().includes("factura") || numero.startsWith("FAC");
-  const isCotizacion = subject.toLowerCase().includes("cotizacion") || numero.startsWith("COT");
+  let htmlContent = "";
 
-  const asuntoFinal = isFactura
-    ? `Factura N° ${numero} – Jotaye Group LLC`
-    : `Cotización N° ${numero} – Jotaye Group LLC`;
-
-  // Plantilla HTML diferente según el tipo
-  let htmlBody = "";
-
-  if (isFactura && data) {
-    const {
-      cliente,
-      resumen,
-      items
-    } = data;
-
-    const itemsHtml = items.map(i => `
-      <tr>
-        <td>${i.descripcion}</td>
-        <td>${i.cantidad}</td>
-        <td>$${i.precio}</td>
-        <td>$${i.total}</td>
-      </tr>
-    `).join("");
-
-    htmlBody = `
+  if (tipo === "factura" && datos) {
+    htmlContent = `
       <h2>Your invoice from Jotaye Group LLC</h2>
-      <p>Hi ${cliente.nombre},</p>
+      <p>Hi ${datos.cliente.nombre},</p>
       <p>Thank you for choosing Jotaye Group LLC. Please see attached invoice due upon receipt.</p>
+      <p><strong>Job Number:</strong> ${numero}<br />
+      <strong>Invoice Number:</strong> ${numero}<br />
+      <strong>Customer Name:</strong> ${datos.cliente.nombre}<br />
+      <strong>Company Name:</strong> ${datos.cliente.tipo}<br />
+      <strong>Service Address:</strong> ${datos.cliente.direccion}</p>
 
-      <table>
-        <tr><td><strong>Job Number:</strong></td><td>${numero}</td></tr>
-        <tr><td><strong>Invoice Number:</strong></td><td>${numero}</td></tr>
-        <tr><td><strong>Customer Name:</strong></td><td>${cliente.nombre}</td></tr>
-        <tr><td><strong>Company Name:</strong></td><td>${cliente.tipo}</td></tr>
-        <tr><td><strong>Service Address:</strong></td><td>${cliente.direccion}</td></tr>
+      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+        <tr><th>Services</th><th>qty</th><th>unit price</th><th>amount</th></tr>
+        ${datos.items.map(item => `
+          <tr>
+            <td>${item.descripcion}</td>
+            <td>${item.cantidad}</td>
+            <td>$${item.precio}</td>
+            <td>$${item.total}</td>
+          </tr>`).join('')}
       </table>
-
-      <h3>Services</h3>
-      <table border="1" cellpadding="5" cellspacing="0">
-        <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>
-        ${itemsHtml}
-      </table>
-
-      <p><strong>Subtotal:</strong> $${resumen.subtotal}</p>
-      <p><strong>Discount:</strong> $${resumen.descuento}</p>
-      <p><strong>Taxes:</strong> $${resumen.impuestos}</p>
-      <p><strong>Advance:</strong> $${resumen.anticipo}</p>
-      <h3>Total job price: $${resumen.total}</h3>
-      <h2>Amount Due: <strong>$${resumen.total}</strong></h2>
+      <p><strong>Concept:</strong> Reprogramming of the engine limits, repair of the curtain that was disconnected from the pipe and everything is working fine.</p>
+      <p>
+        <strong>Subtotal:</strong> $${datos.resumen.subtotal}<br />
+        <strong>Discount:</strong> $${datos.resumen.descuento}<br />
+        <strong>Taxes:</strong> $${datos.resumen.impuestos}<br />
+        <strong>Advance:</strong> $${datos.resumen.anticipo}<br />
+        <strong>Total job price:</strong> $${datos.resumen.total}<br />
+        <strong><span style="font-size: 1.2em;">Amount Due:</span></strong> <strong>$${datos.resumen.total}</strong>
+      </p>
     `;
   } else {
-    htmlBody = `
+    htmlContent = `
       <h2>Gracias por su solicitud</h2>
       <p>${texto}</p>
       <p><strong>Total estimado:</strong> (ver PDF adjunto si aplica)</p>
@@ -87,18 +67,18 @@ app.post("/send-quotation", async (req, res) => {
   const msg = {
     to,
     from: process.env.FROM_EMAIL,
-    subject: asuntoFinal,
-    html: htmlBody,
+    subject: `${tipo === "factura" ? "Factura N°" : "Cotización N°"} ${numero} – Jotaye Group LLC`,
+    html: htmlContent
   };
 
   if (pdfBase64) {
     msg.attachments = [
       {
         content: pdfBase64,
-        filename: `${isFactura ? "Factura" : "Cotizacion"}-${numero}.pdf`,
+        filename: `${tipo === "factura" ? "Factura" : "Cotizacion"}-${numero}.pdf`,
         type: "application/pdf",
-        disposition: "attachment",
-      },
+        disposition: "attachment"
+      }
     ];
   }
 
