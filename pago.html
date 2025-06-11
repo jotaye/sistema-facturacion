@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aprobar y Pagar Cotización</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; background: #f8f8f8; }
+    .card { background: #fff; padding: 2rem; border-radius: 8px; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #333; }
+    .resumen { margin-bottom: 1rem; }
+    button { background: #6772e5; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    .nota { margin-top: 1rem; font-size: 0.9rem; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Pago de Anticipo</h2>
+    <div class="resumen">
+      <p><strong>Referencia:</strong> <span id="ref"></span></p>
+      <p><strong>Monto base:</strong> $<span id="monto"></span></p>
+      <p><strong>Comisión Stripe:</strong> $<span id="comision"></span></p>
+      <p><strong>Total a pagar:</strong> $<span id="total"></span></p>
+    </div>
+    <form id="payment-form">
+      <div id="payment-element"><!--Stripe injecta aquí--></div>
+      <button id="submit">Pagar Ahora</button>
+      <div id="payment-message"></div>
+    </form>
+    <p class="nota">El pago incluye una comisión de procesamiento de Stripe (2.9% + $0.30).</p>
+  </div>
+  <script src="stripe-integration-pago.js"></script>
+</body>
+</html>
