@@ -1,3 +1,5 @@
+// === server.js con botón de pago en correo e integración de recibo ===
+
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -43,6 +45,9 @@ app.post("/send-quotation", async (req, res) => {
       </table>
       <p><strong>Total:</strong> $${datos.resumen.total}</p>
       <p><strong>Advance:</strong> $${datos.resumen.anticipo}</p>
+      <br>
+      <a href="https://sistema-facturacion-iota.vercel.app/" target="_blank" style="padding:10px 20px;background:#28a745;color:white;text-decoration:none;border-radius:5px;">💳 Pagar Anticipo</a>
+      <p style="margin-top:10px;font-size:0.9em;color:#555;">Este enlace lo llevará a una página segura para completar el pago del anticipo. Se aplicará una comisión de Stripe (2.9% + $0.30).</p>
     `;
   } else {
     htmlContent = `
@@ -115,7 +120,7 @@ app.post("/create-checkout-session", async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}?pago=cancelado`
     });
 
-    res.json({ id: session.id });
+    res.json({ sessionUrl: session.url });
   } catch (err) {
     console.error("Stripe error:", err.message);
     res.status(500).json({ error: "Error al crear sesión de Stripe" });
