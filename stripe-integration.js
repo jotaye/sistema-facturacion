@@ -1,59 +1,50 @@
 // === stripe-integration.js ===
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const stripePublicKey = "pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI";
+const stripePublicKey = "pk_test_XXXXXXXXXXXXXXXXXXXXXXXX"; // Reemplazar con tu clave pública real de Stripe
+document.addEventListener("DOMContentLoaded", () => {
   const stripe = Stripe(stripePublicKey);
 
-  const btnAprobar = document.getElementById("btnAprobar");
+  document.getElementById("btnAprobar").addEventListener("click", async () => {
+    const datos = obtenerDatosCotizacion();
 
-  if (!btnAprobar) return;
-
-  btnAprobar.addEventListener("click", async () => {
-    const email = document.getElementById("clienteEmail").value;
-    const nombre = document.getElementById("clienteNombre").value;
-    const anticipo = parseFloat(document.getElementById("inputAnticipo").value);
-    const total = parseFloat(document.getElementById("resTotal").innerText);
-
-    if (!email || !nombre || isNaN(anticipo) || anticipo <= 0) {
+    // Validaciones previas
+    if (!datos.cliente.email || parseFloat(datos.resumen.anticipo) <= 0) {
       alert("Debe completar los datos del cliente y el anticipo debe ser mayor a 0.");
       return;
     }
 
-    // ❗ Validar que el anticipo sea al menos 40% del total
-    const minimoAnticipo = total * 0.4;
-    if (anticipo < minimoAnticipo) {
-      alert(`El anticipo mínimo requerido es el 40% del total: $${minimoAnticipo.toFixed(2)}.`);
-      return;
-    }
+    const descripcion = `Anticipo por trabajo: ${datos.numero}`;
+    const monto = parseFloat(datos.resumen.anticipo);
+    const email = datos.cliente.email;
 
-    const stripeFee = (anticipo * 0.029) + 0.30;
-    const totalConFee = (anticipo + stripeFee).toFixed(2);
+    // Calcular comisión Stripe (2.9% + $0.30)
+    const comision = monto * 0.029 + 0.30;
+    const totalConComision = (monto + comision).toFixed(2);
 
-    const confirmacion = confirm(`El total a pagar incluyendo comisión de Stripe es: $${totalConFee}\n¿Desea continuar al pago con tarjeta?`);
+    const confirmacion = confirm(`El total a pagar incluyendo comisión de Stripe es: $${totalConComision}\n\u00bfDesea continuar al pago con tarjeta?`);
     if (!confirmacion) return;
 
+    // Crear sesión de pago
     try {
-      const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
+      const response = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: parseFloat(totalConFee),
-          description: `Anticipo de cotización para ${nombre}`,
-          email,
-          generateReceipt: true // 🧾 Marca para generar recibo de pago
+          amount: totalConComision,
+          description,
+          email
         })
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (data && data.sessionUrl) {
-        window.open(data.sessionUrl, "_blank");
+      if (data.sessionUrl) {
+        window.location.href = data.sessionUrl;
       } else {
         alert("No se pudo generar la sesión de pago.");
-        console.error(data);
       }
-    } catch (err) {
-      console.error("Error creando la sesión de pago:", err);
+    } catch (error) {
+      console.error("Error creando la sesión de pago:", error);
       alert("Error al conectar con Stripe. Intente nuevamente.");
     }
   });
