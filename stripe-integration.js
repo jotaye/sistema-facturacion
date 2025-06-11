@@ -1,37 +1,57 @@
+// === stripe-integration.js ===
 
+// Espera a que el documento esté listo
 document.addEventListener("DOMContentLoaded", async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const monto = parseFloat(urlParams.get('monto')) || 0;
-  const ref = urlParams.get('ref') || "Sin referencia";
+  const stripePublicKey = "pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI";
+  const stripe = Stripe(stripePublicKey);
 
-  const fee = (monto * 0.029 + 0.30);
-  const total = monto + fee;
+  const btnAprobar = document.getElementById("btnAprobar");
 
-  document.getElementById("monto").innerText = monto.toFixed(2);
-  document.getElementById("comision").innerText = fee.toFixed(2);
-  document.getElementById("total").innerText = total.toFixed(2);
-  document.getElementById("ref").innerText = ref;
+  if (!btnAprobar) return;
 
-  const stripe = Stripe("pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI");
-  const elements = stripe.elements();
-  const paymentElement = elements.create("payment");
-  paymentElement.mount("#payment-element");
+  btnAprobar.addEventListener("click", async () => {
+    // Validar campos mínimos
+    const email = document.getElementById("clienteEmail").value;
+    const nombre = document.getElementById("clienteNombre").value;
+    const anticipo = parseFloat(document.getElementById("inputAnticipo").value);
+    const total = parseFloat(document.getElementById("resTotal").innerText);
 
-  const form = document.getElementById("payment-form");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    if (!email || !nombre || isNaN(anticipo) || anticipo <= 0) {
+      alert("Debe completar los datos del cliente y el anticipo debe ser mayor a 0.");
+      return;
+    }
 
-    const response = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: total, ref })
-    });
+    // Calcular total + comisión Stripe (2.9% + $0.30)
+    const stripeFee = (anticipo * 0.029) + 0.30;
+    const totalConFee = (anticipo + stripeFee).toFixed(2);
 
-    const session = await response.json();
-    const result = await stripe.redirectToCheckout({ sessionId: session.id });
+    // Confirmar al cliente
+    const confirmacion = confirm(`El total a pagar con comisiones Stripe es: $${totalConFee}\nDesea continuar al pago?`);
+    if (!confirmacion) return;
 
-    if (result.error) {
-      document.getElementById("payment-message").innerText = result.error.message;
+    // Enviar al backend para crear la sesión de pago
+    try {
+      const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: parseFloat(totalConFee),
+          description: `Anticipo de cotización para ${nombre}`,
+          email,
+        })
+      });
+
+      const data = await res.json();
+
+      if (data && data.sessionUrl) {
+        window.open(data.sessionUrl, "_blank");
+      } else {
+        alert("No se pudo generar la sesión de pago.");
+        console.error(data);
+      }
+    } catch (err) {
+      console.error("Error creando la sesión de pago:", err);
+      alert("Error al conectar con Stripe. Intente nuevamente.");
     }
   });
 });
