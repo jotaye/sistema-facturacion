@@ -1,4 +1,4 @@
-// === server.js actualizado con plantilla profesional y botón de pago en correo ===
+// === server.js actualizado con CORS corregido y plantilla profesional ===
 
 import express from "express";
 import cors from "cors";
@@ -12,7 +12,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// ✅ CORS corregido para permitir frontend
+app.use(cors({
+  origin: ["https://sistema-facturacion-iota.vercel.app"],
+  methods: ["GET", "POST"]
+}));
+
 app.use(bodyParser.json());
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -33,7 +38,6 @@ app.post("/send-quotation", async (req, res) => {
   const impuesto = resumen.impuestos;
   const subtotal = resumen.subtotal;
 
-  // HTML del correo
   let htmlContent = `
   <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
