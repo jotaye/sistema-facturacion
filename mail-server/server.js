@@ -57,22 +57,22 @@ app.post("/send-quotation", async (req, res) => {
       <strong>Concepto:</strong> ${concepto || "-"}
     </div>
 
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed;">
       <thead>
         <tr style="background-color: #f2f2f2;">
-          <th style="border: 1px solid #ccc; padding: 8px;">Descripción</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Cantidad</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Precio</th>
-          <th style="border: 1px solid #ccc; padding: 8px;">Total</th>
+          <th style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 200px;">Descripción</th>
+          <th style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 80px;">Cantidad</th>
+          <th style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">Precio</th>
+          <th style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">Total</th>
         </tr>
       </thead>
       <tbody>
         ${items.map(item => `
           <tr>
-            <td style="border: 1px solid #ccc; padding: 8px;">${item.descripcion}</td>
-            <td style="border: 1px solid #ccc; padding: 8px;">${item.cantidad}</td>
-            <td style="border: 1px solid #ccc; padding: 8px;">$${item.precio}</td>
-            <td style="border: 1px solid #ccc; padding: 8px;">$${item.total}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 200px;">${item.descripcion}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 80px;">${item.cantidad}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">$${item.precio}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">$${item.total}</td>
           </tr>`).join("")}
       </tbody>
     </table>
@@ -85,7 +85,6 @@ app.post("/send-quotation", async (req, res) => {
     </div>
   `;
 
-  // Agregar botón solo si es factura y tiene email válido
   if (tipo === "factura" && cliente.email && anticipo > 0) {
     htmlContent += `
     <div style="text-align: center; margin-top: 30px;">
