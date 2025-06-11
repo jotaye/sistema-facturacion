@@ -19,14 +19,14 @@ document.getElementById("btnEliminarFila").addEventListener("click", eliminarFil
 
 function agregarFila() {
   const row = document.createElement("tr");
-  row.innerHTML = 
+  row.innerHTML = `
     <td>${tabla.rows.length + 1}</td>
     <td><input type="text" class="descripcion" /></td>
     <td><input type="number" class="cantidad" value="1" min="1" /></td>
     <td><input type="number" class="precio" value="0.00" step="0.01" /></td>
     <td class="total">$0.00</td>
     <td><button class="btnEliminar">🗑️</button></td>
-  ;
+  `;
   tabla.appendChild(row);
   row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
   row.querySelector(".precio").addEventListener("input", recalcularTotales);
@@ -50,7 +50,7 @@ function recalcularTotales() {
     const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
     const precio = parseFloat(row.querySelector(".precio").value) || 0;
     const total = cantidad * precio;
-    row.querySelector(".total").innerText = $${total.toFixed(2)};
+    row.querySelector(".total").innerText = `$${total.toFixed(2)}`;
     subtotal += total;
   });
 
@@ -77,7 +77,7 @@ async function generarNumero(tipo) {
   const prefix = tipo === "factura" ? "FAC" : "COT";
   const snapshot = await db.collection(tipo === "factura" ? "facturas" : "cotizaciones").get();
   const nuevo = snapshot.size + 1;
-  return ${prefix}-${fecha}-${String(nuevo).padStart(4, '0')};
+  return `${prefix}-${fecha}-${String(nuevo).padStart(4, '0')}`;
 }
 
 function obtenerDatosCotizacion() {
