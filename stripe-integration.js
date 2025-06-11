@@ -1,6 +1,5 @@
 // === stripe-integration.js ===
 
-// Espera a que el documento esté listo
 document.addEventListener("DOMContentLoaded", async () => {
   const stripePublicKey = "pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI";
   const stripe = Stripe(stripePublicKey);
@@ -10,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!btnAprobar) return;
 
   btnAprobar.addEventListener("click", async () => {
-    // Validar campos mínimos
     const email = document.getElementById("clienteEmail").value;
     const nombre = document.getElementById("clienteNombre").value;
     const anticipo = parseFloat(document.getElementById("inputAnticipo").value);
@@ -21,15 +19,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Calcular total + comisión Stripe (2.9% + $0.30)
+    // ❗ Validar que el anticipo sea al menos 40% del total
+    const minimoAnticipo = total * 0.4;
+    if (anticipo < minimoAnticipo) {
+      alert(`El anticipo mínimo requerido es el 40% del total: $${minimoAnticipo.toFixed(2)}.`);
+      return;
+    }
+
     const stripeFee = (anticipo * 0.029) + 0.30;
     const totalConFee = (anticipo + stripeFee).toFixed(2);
 
-    // Confirmar al cliente
-    const confirmacion = confirm(`El total a pagar con comisiones Stripe es: $${totalConFee}\nDesea continuar al pago?`);
+    const confirmacion = confirm(`El total a pagar incluyendo comisión de Stripe es: $${totalConFee}\n¿Desea continuar al pago con tarjeta?`);
     if (!confirmacion) return;
 
-    // Enviar al backend para crear la sesión de pago
     try {
       const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
         method: "POST",
@@ -38,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           amount: parseFloat(totalConFee),
           description: `Anticipo de cotización para ${nombre}`,
           email,
+          generateReceipt: true // 🧾 Marca para generar recibo de pago
         })
       });
 
