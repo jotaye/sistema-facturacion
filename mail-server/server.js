@@ -1,4 +1,4 @@
-// === server.js con botón de pago en correo e integración de recibo ===
+// === server.js actualizado con plantilla profesional y botón de pago en correo ===
 
 import express from "express";
 import cors from "cors";
@@ -22,57 +22,95 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 app.post("/send-quotation", async (req, res) => {
   const { numero, to, subject, texto, pdfBase64, tipo, datos } = req.body;
 
-  if (!numero || !to || !subject || !texto || !tipo) {
+  if (!numero || !to || !subject || !texto || !tipo || !datos) {
     return res.status(400).json({ ok: false, error: "Faltan datos requeridos." });
   }
 
-  let htmlContent = "";
+  const { cliente, resumen, items, concepto = "", observaciones = "" } = datos;
+  const total = parseFloat(resumen.total);
+  const anticipo = parseFloat(resumen.anticipo);
+  const porcentaje = resumen.porcentajeImpuesto;
+  const impuesto = resumen.impuestos;
+  const subtotal = resumen.subtotal;
 
-  if (tipo === "factura" && datos) {
-    htmlContent = `
-      <h2>Your invoice from Jotaye Group LLC</h2>
-      <p>Hi ${datos.cliente.nombre},</p>
-      <p>Thank you for choosing Jotaye Group LLC. Please see attached invoice due upon receipt.</p>
-      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
-        <tr><th>Service</th><th>Qty</th><th>Price</th><th>Total</th></tr>
-        ${datos.items.map(item => `
+  // HTML del correo
+  let htmlContent = `
+  <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <img src="https://www.jotayegroupllc.com/logo.png" alt="Jotaye Logo" style="height: 60px;">
+      <div style="text-align: right;">
+        <strong>JOTAYE GROUP LLC</strong><br>
+        11201 SW 55Th St, Unit 286<br>
+        Miramar FL 33025<br>
+        (305) 417-2681<br>
+        jotayegroupllc@gmail.com
+      </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <strong>Cliente:</strong> ${cliente.nombre}<br>
+      <strong>Dirección:</strong> ${cliente.direccion}<br>
+      <strong>Teléfono:</strong> ${cliente.telefono}<br>
+      <strong>Email:</strong> ${cliente.email}<br><br>
+      <strong>${tipo === "factura" ? "Factura" : "Cotización"}:</strong> ${numero}<br>
+      <strong>Fecha:</strong> ${datos.fecha || "-"}<br>
+      <strong>Concepto:</strong> ${concepto || "-"}
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+      <thead>
+        <tr style="background-color: #f2f2f2;">
+          <th style="border: 1px solid #ccc; padding: 8px;">Descripción</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Cantidad</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Precio</th>
+          <th style="border: 1px solid #ccc; padding: 8px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(item => `
           <tr>
-            <td>${item.descripcion}</td>
-            <td>${item.cantidad}</td>
-            <td>$${item.precio}</td>
-            <td>$${item.total}</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">${item.descripcion}</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">${item.cantidad}</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">$${item.precio}</td>
+            <td style="border: 1px solid #ccc; padding: 8px;">$${item.total}</td>
           </tr>`).join("")}
-      </table>
-      <p><strong>Total:</strong> $${datos.resumen.total}</p>
-      <p><strong>Advance:</strong> $${datos.resumen.anticipo}</p>
-      <br>
-      <a href="https://sistema-facturacion-iota.vercel.app/" target="_blank" style="padding:10px 20px;background:#28a745;color:white;text-decoration:none;border-radius:5px;">💳 Pagar Anticipo</a>
-      <p style="margin-top:10px;font-size:0.9em;color:#555;">Este enlace lo llevará a una página segura para completar el pago del anticipo. Se aplicará una comisión de Stripe (2.9% + $0.30).</p>
-    `;
-  } else {
-    htmlContent = `
-      <h2>Your quotation from Jotaye Group LLC</h2>
-      <p>Hi ${datos.cliente.nombre},</p>
-      <p>Thank you for your interest in Jotaye Group LLC.</p>
-      <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
-        <tr><th>Service</th><th>Qty</th><th>Price</th><th>Total</th></tr>
-        ${datos.items.map(item => `
-          <tr>
-            <td>${item.descripcion}</td>
-            <td>${item.cantidad}</td>
-            <td>$${item.precio}</td>
-            <td>$${item.total}</td>
-          </tr>`).join("")}
-      </table>
-      <p><strong>Total Estimate:</strong> $${datos.resumen.total}</p>
+      </tbody>
+    </table>
+
+    <div style="text-align: right; margin-top: 20px;">
+      <div><strong>Subtotal:</strong> $${subtotal}</div>
+      <div><strong>Impuestos (${porcentaje}%):</strong> $${impuesto}</div>
+      <div><strong>Anticipo:</strong> $${anticipo}</div>
+      <div style="font-size: 1.2em; margin-top: 5px;"><strong>Total:</strong> $${total}</div>
+    </div>
+  `;
+
+  // Agregar botón solo si es factura y tiene email válido
+  if (tipo === "factura" && cliente.email && anticipo > 0) {
+    htmlContent += `
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="https://sistema-facturacion-iota.vercel.app" target="_blank" style="padding:12px 24px; background:#28a745; color:white; font-size:16px; text-decoration:none; border-radius:6px;">
+        💳 Pagar Anticipo
+      </a>
+      <p style="font-size: 0.9em; color: #555; margin-top: 10px;">
+        Este botón le permitirá pagar el anticipo de su factura. Se aplica una comisión de Stripe (2.9% + $0.30).
+      </p>
+    </div>
     `;
   }
+
+  htmlContent += `
+    <div style="margin-top: 30px; font-size: 0.9em;">
+      <strong>Observaciones:</strong><br>${observaciones || "-"}
+    </div>
+  </div>
+  `;
 
   const msg = {
     to,
     from: process.env.FROM_EMAIL,
     subject: `${tipo === "factura" ? "Factura N°" : "Cotización N°"} ${numero} – Jotaye Group LLC`,
-    html: htmlContent,
+    html: htmlContent
   };
 
   if (pdfBase64) {
