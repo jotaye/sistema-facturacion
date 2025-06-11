@@ -1,3 +1,5 @@
+// === server.js actualizado con plantilla profesional y botón de pago en correo ===
+
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -10,11 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Configuración CORS específica para tu frontend en Vercel
-app.use(cors({
-  origin: "https://sistema-facturacion-iota.vercel.app"
-}));
-
+app.use(cors());
 app.use(bodyParser.json());
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -35,6 +33,7 @@ app.post("/send-quotation", async (req, res) => {
   const impuesto = resumen.impuestos;
   const subtotal = resumen.subtotal;
 
+  // HTML del correo
   let htmlContent = `
   <div style="font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -71,9 +70,9 @@ app.post("/send-quotation", async (req, res) => {
         ${items.map(item => `
           <tr>
             <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 200px;">${item.descripcion}</td>
-            <td style="border: 1px solid #ccc; padding: 6px;">${item.cantidad}</td>
-            <td style="border: 1px solid #ccc; padding: 6px;">$${item.precio}</td>
-            <td style="border: 1px solid #ccc; padding: 6px;">$${item.total}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 80px;">${item.cantidad}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">$${item.precio}</td>
+            <td style="border: 1px solid #ccc; padding: 6px; word-wrap: break-word; max-width: 100px;">$${item.total}</td>
           </tr>`).join("")}
       </tbody>
     </table>
@@ -95,14 +94,16 @@ app.post("/send-quotation", async (req, res) => {
       <p style="font-size: 0.9em; color: #555; margin-top: 10px;">
         Este botón le permitirá pagar el anticipo de su factura. Se aplica una comisión de Stripe (2.9% + $0.30).
       </p>
-    </div>`;
+    </div>
+    `;
   }
 
   htmlContent += `
     <div style="margin-top: 30px; font-size: 0.9em;">
       <strong>Observaciones:</strong><br>${observaciones || "-"}
     </div>
-  </div>`;
+  </div>
+  `;
 
   const msg = {
     to,
@@ -131,7 +132,7 @@ app.post("/send-quotation", async (req, res) => {
   }
 });
 
-// === Stripe checkout ===
+// === Ruta para Stripe checkout ===
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { amount, description, email } = req.body;
