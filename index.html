@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Jotaye Group - Sistema de Cotizaciones</title>
+  <title>Cotización y Facturación - Jotaye Group LLC</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
   <h1>🧾 Cotización y Facturación - Jotaye Group LLC</h1>
@@ -15,14 +15,9 @@
     <div>
       <h3>Datos del Cliente</h3>
       <label>Nombre: <input id="clienteNombre" /></label><br />
-      <label>Tipo: 
-        <select id="clienteTipo">
-          <option value="personal">Personal</option>
-          <option value="empresa">Empresa</option>
-        </select>
-      </label><br />
+      <label>Tipo: <input id="clienteTipo" /></label><br />
       <label>Dirección: <input id="clienteDireccion" /></label><br />
-      <label>Email: <input id="clienteEmail" type="email"/></label><br />
+      <label>Email: <input id="clienteEmail" type="email" /></label><br />
       <label>Teléfono: <input id="clienteTelefono" /></label><br />
     </div>
 
@@ -30,8 +25,7 @@
       <h3>Datos del Documento</h3>
       <label>Fecha: <input type="date" id="fecha" /></label><br />
       <label>No. Cotización/Factura: <input id="numero" readonly /></label><br />
-      <label>Buscar: <input id="buscar" /></label>
-      <button id="btnBuscar">🔍</button>
+      <label>Buscar: <input id="buscar" /><button id="btnBuscar">🔍</button></label>
     </div>
   </div>
 
@@ -75,13 +69,6 @@
     <button id="btnImprimir">🖨️ Imprimir</button>
   </div>
 
-  <!-- Stripe (no rompe el flujo actual) -->
-  <script src="https://js.stripe.com/v3/"></script>
-
-  <!-- Tu lógica principal -->
   <script src="script.js"></script>
-
-  <!-- Stripe Elements (en entorno separado o futuro modal) -->
-  <script src="stripe-integration.js"></script>
 </body>
 </html>
