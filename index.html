@@ -1,33 +1,87 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Facturación</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://js.stripe.com/v3/"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jotaye Group - Sistema de Cotizaciones</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-  <!-- Sistema existente aquí -->
+  <h1>🧾 Cotización y Facturación - Jotaye Group LLC</h1>
 
-  <!-- Formulario de pago Stripe -->
-  <section id="stripe-section">
-    <h2>Pago con Tarjeta</h2>
-    <form id="payment-form">
-      <div id="payment-element"><!--Stripe.js injectará elementos aquí--></div>
-      <button id="submit">Pagar Ahora</button>
-      <div id="payment-message" class="hidden"></div>
-    </form>
-    <p class="nota-legal">
-      Nota: El pago incluye una comisión de procesamiento de Stripe (2.9% + $0.30).
-    </p>
-  </section>
+  <div class="datos">
+    <div>
+      <h3>Datos del Cliente</h3>
+      <label>Nombre: <input id="clienteNombre" /></label><br />
+      <label>Tipo: 
+        <select id="clienteTipo">
+          <option value="personal">Personal</option>
+          <option value="empresa">Empresa</option>
+        </select>
+      </label><br />
+      <label>Dirección: <input id="clienteDireccion" /></label><br />
+      <label>Email: <input id="clienteEmail" type="email"/></label><br />
+      <label>Teléfono: <input id="clienteTelefono" /></label><br />
+    </div>
 
-  <!-- Scripts al final -->
+    <div>
+      <h3>Datos del Documento</h3>
+      <label>Fecha: <input type="date" id="fecha" /></label><br />
+      <label>No. Cotización/Factura: <input id="numero" readonly /></label><br />
+      <label>Buscar: <input id="buscar" /></label>
+      <button id="btnBuscar">🔍</button>
+    </div>
+  </div>
+
+  <hr />
+
+  <h3>Items</h3>
+  <table id="tablaItems">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Descripción</th>
+        <th>Cant.</th>
+        <th>Precio</th>
+        <th>Total</th>
+        <th>Eliminar</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button id="btnAgregarFila">➕ Agregar</button>
+  <button id="btnEliminarFila">➖ Eliminar última</button>
+
+  <h3>Resumen</h3>
+  <label>% Descuento: <input id="inputDescuento" type="number" value="0" /></label><br />
+  <label>% Impuesto: <input id="inputImpuesto" type="number" value="10" /></label><br />
+  <label>Anticipo: <input id="inputAnticipo" type="number" value="0" /></label><br />
+
+  <p>Subtotal: $<span id="resSubtotal">0.00</span></p>
+  <p>Descuento: $<span id="resDescuento">0.00</span></p>
+  <p>Impuestos: $<span id="resImpuestos">0.00</span></p>
+  <p>Total: $<span id="resTotal">0.00</span></p>
+
+  <hr />
+
+  <div class="botones">
+    <button id="btnGuardar">💾 Guardar Cotización</button>
+    <button id="btnEnviar">📧 Enviar Cotización por Email</button>
+    <button id="btnAprobar">✅ Aprobar Cotización</button>
+    <button id="btnFacturar">🧾 Facturar (Descargar PDF)</button>
+    <button id="btnReiniciar">🔄 Reiniciar Cotización</button>
+    <button id="btnImprimir">🖨️ Imprimir</button>
+  </div>
+
+  <!-- Stripe (no rompe el flujo actual) -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- Tu lógica principal -->
   <script src="script.js"></script>
+
+  <!-- Stripe Elements (en entorno separado o futuro modal) -->
   <script src="stripe-integration.js"></script>
 </body>
 </html>
