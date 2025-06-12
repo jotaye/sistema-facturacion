@@ -1,6 +1,7 @@
 // === stripe-integration.js ===
 
-const stripePublicKey = "pk_test_XXXXXXXXXXXXXXXXXXXXXXXX"; // Reemplazar con tu clave pública real de Stripe
+const stripePublicKey = "pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI";
+// Reemplazar con tu clave pública real de Stripe
 document.addEventListener("DOMContentLoaded", () => {
   const stripe = Stripe(stripePublicKey);
 
