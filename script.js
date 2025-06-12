@@ -1,5 +1,3 @@
-// === script.js actualizado ===
-
 // === Inicialización de Firebase ===
 const firebaseConfig = {
   apiKey: "AIzaSyBXBGILqL1JArsbJkKjUhX79veAnvkNcSg",
@@ -14,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// === Agregar fila ===
+// === Agregar y eliminar filas ===
 const tabla = document.querySelector("#tablaItems tbody");
 document.getElementById("btnAgregarFila").addEventListener("click", agregarFila);
 document.getElementById("btnEliminarFila").addEventListener("click", eliminarFila);
@@ -22,7 +20,7 @@ document.getElementById("btnEliminarFila").addEventListener("click", eliminarFil
 function agregarFila() {
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td>\${tabla.rows.length + 1}</td>
+    <td>${tabla.rows.length + 1}</td>
     <td><input type="text" class="descripcion" /></td>
     <td><input type="number" class="cantidad" value="1" min="1" /></td>
     <td><input type="number" class="precio" value="0.00" step="0.01" /></td>
@@ -46,6 +44,7 @@ function eliminarFila() {
   }
 }
 
+// === Recalcular totales ===
 function recalcularTotales() {
   let subtotal = 0;
   tabla.querySelectorAll("tr").forEach(row => {
@@ -73,69 +72,7 @@ function recalcularTotales() {
   document.getElementById(id).addEventListener("input", recalcularTotales)
 );
 
-async function generarNumero(tipo) {
-  const hoy = new Date();
-  const fecha = hoy.toISOString().split("T")[0].replace(/-/g, "");
-  const prefix = tipo === "factura" ? "FAC" : "COT";
-  const snapshot = await db.collection(tipo === "factura" ? "facturas" : "cotizaciones").get();
-  const nuevo = snapshot.size + 1;
-  return `${prefix}-${fecha}-${String(nuevo).padStart(4, '0')}`;
-}
-
-function obtenerDatosCotizacion() {
-  const subtotal = parseFloat(document.getElementById("resSubtotal").innerText) || 0;
-  const descuentoPct = parseFloat(document.getElementById("inputDescuento").value) || 0;
-  const montoDescuento = parseFloat(document.getElementById("resDescuento").innerText) || 0;
-  const impuestoPct = parseFloat(document.getElementById("inputImpuesto").value) || 0;
-  const montoImpuesto = parseFloat(document.getElementById("resImpuestos").innerText) || 0;
-  const anticipo = parseFloat(document.getElementById("inputAnticipo").value) || 0;
-  const total = parseFloat(document.getElementById("resTotal").innerText) || 0;
-
-  const cotizacion = {
-    fecha: document.getElementById("fecha").value,
-    cliente: {
-      nombre: document.getElementById("clienteNombre").value,
-      tipo: document.getElementById("clienteTipo").value,
-      direccion: document.getElementById("clienteDireccion").value,
-      email: document.getElementById("clienteEmail").value,
-      telefono: document.getElementById("clienteTelefono").value
-    },
-    concepto: document.getElementById("inputConcepto")?.value || "",
-    observaciones: document.getElementById("inputObservaciones")?.value || "",
-    items: [],
-    resumen: {
-      subtotal: subtotal.toFixed(2),
-      porcentajeDescuento: descuentoPct.toFixed(2),
-      descuento: montoDescuento.toFixed(2),
-      porcentajeImpuesto: impuestoPct.toFixed(2),
-      impuestos: montoImpuesto.toFixed(2),
-      totalSinImpuesto: (subtotal - montoDescuento).toFixed(2),
-      anticipo: anticipo.toFixed(2),
-      total: total.toFixed(2)
-    }
-  };
-
-  tabla.querySelectorAll("tr").forEach(row => {
-    const cantidad = parseFloat(row.querySelector(".cantidad").value) || 0;
-    const precio = parseFloat(row.querySelector(".precio").value) || 0;
-    const totalItem = cantidad * precio;
-
-    cotizacion.items.push({
-      descripcion: row.querySelector(".descripcion").value,
-      cantidad: cantidad.toString(),
-      precio: precio.toFixed(2),
-      total: totalItem.toFixed(2)
-    });
-  });
-
-  return cotizacion;
-}
-
-// Botones ===
-// Se mantienen como estaban sin cambios estructurales
-// Asegúrate de tener inputConcepto e inputObservaciones en el HTML
-
-
+// === Función para buscar cotización o factura por número ===
 function buscar() {
   const numero = document.getElementById("inputNumeroBuscar")?.value;
   if (!numero) return alert("Escribe un número para buscar");
@@ -147,9 +84,11 @@ function buscar() {
     snapshot.forEach(doc => {
       const data = doc.data();
       console.log("Documento encontrado:", data);
-      // Puedes cargar los datos aquí al formulario si deseas
+      // Aquí puedes insertar lógica para llenar el formulario automáticamente si deseas
     });
   }).catch(err => {
     alert("Error al buscar: " + err.message);
   });
 }
+
+document.getElementById("btnBuscar").addEventListener("click", buscar);
