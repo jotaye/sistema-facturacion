@@ -134,3 +134,22 @@ function obtenerDatosCotizacion() {
 // Botones ===
 // Se mantienen como estaban sin cambios estructurales
 // Asegúrate de tener inputConcepto e inputObservaciones en el HTML
+
+
+function buscar() {
+  const numero = document.getElementById("inputNumeroBuscar")?.value;
+  if (!numero) return alert("Escribe un número para buscar");
+
+  const tipo = numero.startsWith("FAC") ? "facturas" : "cotizaciones";
+  db.collection(tipo).where("numero", "==", numero).get().then(snapshot => {
+    if (snapshot.empty) return alert("No se encontró ningún documento");
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      console.log("Documento encontrado:", data);
+      // Puedes cargar los datos aquí al formulario si deseas
+    });
+  }).catch(err => {
+    alert("Error al buscar: " + err.message);
+  });
+}
