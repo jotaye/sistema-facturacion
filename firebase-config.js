@@ -1,8 +1,5 @@
 // firebase-config.js
-// SDK modular v9+ de Firebase, cargado como módulo en el navegador
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 import { getFirestore }  from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -15,11 +12,5 @@ const firebaseConfig = {
   measurementId: "G-GG4X805W1R"
 };
 
-// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
-
-// Inicializa Analytics (opcional)
-const analytics = getAnalytics(app);
-
-// Inicializa y exporta Firestore para usarlo en script.js
 export const db = getFirestore(app);
