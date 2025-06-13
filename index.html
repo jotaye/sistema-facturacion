@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sistema de Cotización – Jotaye Group LLC</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico">
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
 
   <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
@@ -16,11 +16,12 @@
 <body>
   <div class="container">
     <header>
-      <img src="logo-header.png" alt="Jotaye Logo" class="logo">
+      <img src="logo-header.png" alt="Logo Jotaye" class="logo" />
       <h1>COTIZACIÓN</h1>
     </header>
 
-    <section class="info">
+    <!-- Datos Empresa / Cliente -->
+    <section class="info-empresa-cliente">
       <div class="empresa">
         <h3>Jotaye Group LLC</h3>
         <p>11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
@@ -30,71 +31,78 @@
       </div>
       <div class="cliente">
         <h3>Datos del Cliente</h3>
-        <label>Nombre: <input type="text" id="clienteNombre"></label>
-        <label>Tipo: <input type="text" id="clienteTipo"></label>
-        <label>Dirección: <input type="text" id="clienteDireccion"></label>
-        <label>Email: <input type="email" id="clienteEmail"></label>
-        <label>Teléfono: <input type="text" id="clienteTelefono"></label>
+        <label>Nombre: <input type="text" id="clienteNombre" /></label>
+        <label>Tipo:   <input type="text" id="clienteTipo" /></label>
+        <label>Dirección: <input type="text" id="clienteDireccion" /></label>
+        <label>Email: <input type="email" id="clienteEmail" /></label>
+        <label>Teléfono: <input type="text" id="clienteTelefono" /></label>
       </div>
     </section>
 
-    <section class="encabezado">
-      <label>Fecha emisión: <input type="date" id="fecha"></label>
-      <label>N° Cotización: <input type="text" id="numero" value="COT-{{YYYYMMDD}}-0001"></label>
-      <label>Buscar N°: <input type="text" id="inputNumeroBuscar" placeholder="COT-..."> <button id="btnBuscar">Cargar</button></label>
+    <!-- Sección Superior -->
+    <section class="encabezado-superior">
+      <label>Fecha Emisión: <input type="date" id="fecha" /></label>
+      <label>N° Cotización: <input type="text" id="numero" value="COT-20250612-0001" /></label>
+      <label>Buscar N°: <input type="text" id="inputNumeroBuscar" placeholder="COT-..." /> <button id="btnBuscar">Cargar</button></label>
     </section>
 
-    <section class="tabla">
+    <!-- Tabla de Ítems -->
+    <section class="tabla-items">
       <h2>Detalle de Productos / Servicios</h2>
       <table id="tablaItems">
         <thead>
-          <tr><th>ID</th><th>Descripción</th><th>Cantidad</th><th>Precio Unit.</th><th>Total</th><th>Acción</th></tr>
+          <tr>
+            <th>ID</th><th>Descripción</th><th>Cantidad</th><th>Precio Unitario</th><th>Total</th><th>Acción</th>
+          </tr>
         </thead>
         <tbody>
           <tr>
             <td>1</td>
-            <td><input class="descripcion" type="text"></td>
-            <td><input class="cantidad" type="number" min="1" value="1"></td>
-            <td><input class="precio" type="number" min="0" step="0.01" value="0.00"></td>
+            <td><input class="descripcion" type="text" /></td>
+            <td><input class="cantidad" type="number" min="1" value="1" /></td>
+            <td><input class="precio" type="number" min="0" step="0.01" value="0.00" /></td>
             <td class="total">$0.00</td>
             <td><button class="btnEliminar">Eliminar</button></td>
           </tr>
         </tbody>
       </table>
-      <div class="botones-tabla">
+      <div class="acciones-filas">
         <button id="btnAgregarFila">+ Agregar Fila</button>
         <button id="btnEliminarFila">− Eliminar Fila</button>
       </div>
     </section>
 
-    <section class="obs">
-      <h2>Información adicional</h2>
-      <label>Concepto:<input id="inputConcepto" type="text" placeholder="Ej. Remodelación de baño"></label>
-      <label>Observaciones:<textarea id="inputObservaciones" rows="3" placeholder="Condiciones, garantías, etc."></textarea></label>
+    <!-- Observaciones -->
+    <section class="concepto-observaciones">
+      <h2>Información Adicional</h2>
+      <label>Concepto: <input type="text" id="inputConcepto" placeholder="Ej. Remodelación de baño" /></label>
+      <label>Observaciones: <textarea id="inputObservaciones" rows="3" placeholder="Condiciones, garantías, etc."></textarea></label>
     </section>
 
-    <section class="resumen">
+    <!-- Resumen Totales -->
+    <section class="resumen-factura">
       <h2>Resumen de Cotización</h2>
       <div><label>Subtotal:</label> $<span id="resSubtotal">0.00</span></div>
-      <div><label>Descuento (%):</label> <input id="inputDescuento" type="number" min="0" max="100" value="0"></div>
+      <div><label>Descuento (%)</label> <input type="number" id="inputDescuento" min="0" max="100" value="0" /></div>
       <div><label>Monto Descuento:</label> $<span id="resDescuento">0.00</span></div>
-      <div><label>Impuestos (%):</label> <input id="inputImpuesto" type="number" min="0" max="100" value="10"></div>
+      <div><label>Impuestos (%)</label> <input type="number" id="inputImpuesto" min="0" max="100" value="10" /></div>
       <div><label>Monto Impuesto:</label> $<span id="resImpuestos">0.00</span></div>
-      <div><label>Anticipo:</label> <input id="inputAnticipo" type="number" min="0" step="0.01" value="0"></div>
-      <div class="total-neto"><label>Total Neto:</label> $<span id="resTotal">0.00</span></div>
+      <div><label>Anticipo:</label> <input type="number" id="inputAnticipo" min="0" step="0.01" value="0" /></div>
+      <div class="linea total"><label>Total Neto:</label> $<span id="resTotal">0.00</span></div>
     </section>
 
+    <!-- Botones de acción -->
     <div class="acciones">
-      <button id="btnGuardar" class="btn primary">💾 Guardar</button>
-      <button id="btnImprimir" class="btn success">🖨️ Imprimir</button>
-      <button id="btnFacturar" class="btn warning">📄 Facturar</button>
-      <button id="btnReiniciar" class="btn dark">🔄 Reiniciar</button>
-      <button id="btnEnviar" class="btn success">✉️ Enviar por Email</button>
+      <button id="btnGuardar" class="btn primary">💾 Guardar Cotización</button>
+      <button id="btnImprimir" class="btn success">🖨️ Imprimir Cotización</button>
+      <button id="btnFacturar" class="btn warning">📄 Facturar (Descargar PDF)</button>
+      <button id="btnReiniciar" class="btn dark">🔄 Reiniciar Cotización</button>
+      <button id="btnEnviar" class="btn success">✉️ Enviar Cotización por Email</button>
       <button id="btnAprobar" class="btn primary">✅ Aprobar Cotización</button>
     </div>
   </div>
 
-  <!-- Funcionalidad -->
+  <!-- Tu archivo de lógica -->
   <script src="script.js"></script>
 </body>
 </html>
