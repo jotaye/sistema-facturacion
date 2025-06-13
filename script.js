@@ -1,0 +1,1 @@
+// Funciones completas: guardar, buscar, enviar, stripe embebido
