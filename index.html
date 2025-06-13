@@ -5,27 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sistema de Cotización – Jotaye Group LLC</title>
   <link rel="icon" href="favicon.ico">
-
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
-    .container { max-width:1000px; margin:20px auto; background:#fff; padding:20px; border-radius:8px; }
-    header { text-align:center; }
-    .logo { height:60px; }
-    .info-empresa-cliente { display:flex; justify-content:space-between; margin-bottom:20px; }
-    .info-empresa-cliente div { width:48%; }
-    .encabezado-superior, .concepto-observaciones, .resumen-factura { margin-bottom:20px; }
-    table { width:100%; border-collapse:collapse; margin-bottom:10px; }
-    th, td { border:1px solid #ddd; padding:8px; }
-    .acciones-filas button { margin-right:8px; }
-    .acciones { text-align:center; margin-top:20px; }
-    .btn { padding:8px 16px; margin:4px; border:none; border-radius:4px; cursor:pointer; }
-    .primary { background:#007bff; color:#fff; }
-    .success { background:#28a745; color:#fff; }
-    .warning { background:#ffc107; color:#212529; }
-    .dark { background:#343a40; color:#fff; }
-    .total-neto { font-size:1.2em; font-weight:bold; margin-top:10px; }
-  </style>
-
+  <link rel="stylesheet" href="style.css">
   <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
   <!-- Firebase v8 -->
@@ -50,24 +30,24 @@
       </div>
       <div class="cliente">
         <h3>Datos del Cliente</h3>
-        <label>Nombre: <input type="text" id="clienteNombre"></label><br>
-        <label>Tipo: <input type="text" id="clienteTipo"></label><br>
-        <label>Dirección: <input type="text" id="clienteDireccion"></label><br>
-        <label>Email: <input type="email" id="clienteEmail"></label><br>
+        <label>Nombre:   <input type="text" id="clienteNombre"></label><br>
+        <label>Tipo:     <input type="text" id="clienteTipo"></label><br>
+        <label>Dirección:<input type="text" id="clienteDireccion"></label><br>
+        <label>Email:    <input type="email" id="clienteEmail"></label><br>
         <label>Teléfono: <input type="text" id="clienteTelefono"></label>
       </div>
     </section>
 
-    <!-- Sección Superior -->
+    <!-- Encabezado superior -->
     <section class="encabezado-superior">
       <label>Fecha Emisión: <input type="date" id="fecha"></label>
       <label>N° Cotización: <input type="text" id="numero" value="COT-20250613-0001"></label>
       <label>Buscar N°: <input type="text" id="inputNumeroBuscar" placeholder="COT-...">
-        <button id="btnBuscar">Cargar</button>
+        <button id="btnBuscar" class="btn primary">Cargar</button>
       </label>
     </section>
 
-    <!-- Tabla de Ítems -->
+    <!-- Tabla de ítems -->
     <section class="tabla-items">
       <h2>Detalle de Productos / Servicios</h2>
       <table id="tablaItems">
@@ -82,22 +62,22 @@
             <td>1</td>
             <td><input class="descripcion" type="text"></td>
             <td><input class="cantidad" type="number" min="1" value="1"></td>
-            <td><input class="precio" type="number" min="0" step="0.01" value="0.00"></td>
+            <td><input class="precio"   type="number" min="0" step="0.01" value="0.00"></td>
             <td class="total">$0.00</td>
-            <td><button class="btnEliminar">Eliminar</button></td>
+            <td><button class="btnEliminar btn warning">Eliminar</button></td>
           </tr>
         </tbody>
       </table>
       <div class="acciones-filas">
-        <button id="btnAgregarFila" class="btn primary">+ Agregar Fila</button>
-        <button id="btnEliminarFila" class="btn warning">− Eliminar Fila</button>
+        <button id="btnAgregarFila" class="btn success">+ Agregar Fila</button>
+        <button id="btnEliminarFila" class="btn dark">− Eliminar Fila</button>
       </div>
     </section>
 
     <!-- Observaciones -->
     <section class="concepto-observaciones">
       <h2>Información Adicional</h2>
-      <label>Concepto: <input type="text" id="inputConcepto" placeholder="Ej. Remodelación de baño"></label><br>
+      <label>Concepto:<input type="text" id="inputConcepto" placeholder="Ej. Remodelación de baño"></label><br>
       <label>Observaciones:<br>
         <textarea id="inputObservaciones" rows="3" placeholder="Condiciones, garantías, etc."></textarea>
       </label>
@@ -118,18 +98,18 @@
     <!-- Botones de acción -->
     <div class="acciones">
       <button id="btnGuardar"   class="btn success">💾 Guardar</button>
-      <button id="btnImprimir" class="btn primary">🖨️ Imprimir</button>
-      <button id="btnFacturar" class="btn warning">📄 Facturar</button>
-      <button id="btnReiniciar"class="btn dark">🔄 Reiniciar</button>
-      <button id="btnEnviar"   class="btn success">✉️ Enviar</button>
-      <button id="btnAprobar"  class="btn primary">✅ Aprobar</button>
+      <button id="btnImprimir"  class="btn primary">🖨️ Imprimir</button>
+      <button id="btnFacturar"  class="btn warning">📄 Facturar</button>
+      <button id="btnReiniciar" class="btn dark">🔄 Reiniciar</button>
+      <button id="btnEnviar"    class="btn success">✉️ Enviar</button>
+      <button id="btnAprobar"   class="btn primary">✅ Aprobar</button>
     </div>
   </div>
 
   <script>
-    // === Inicializar Firebase v8 ===
+    // --- Firebase v8 Init ---
     var firebaseConfig = {
-      apiKey: "AIzaSyBXBGILqL1JArsbJkKjUhX79veAnvkNcSg",
+      apiKey: "AIzaSyBXBGILqL1JArsbJkUhX79veAnvkNcSg",
       authDomain: "presupuestos-1dd33.firebaseapp.com",
       projectId: "presupuestos-1dd33",
       storageBucket: "presupuestos-1dd33.appspot.com",
@@ -139,14 +119,17 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    // === Inicializar Stripe ===
+    // --- Stripe Init ---
     var stripe = Stripe("pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI");
 
-    // === Referencias DOM ===
+    // --- DOM Refs ---
     var tablaBody    = document.querySelector("#tablaItems tbody");
     var btnAgregar   = document.getElementById("btnAgregarFila");
     var btnEliminar  = document.getElementById("btnEliminarFila");
     var btnGuardar   = document.getElementById("btnGuardar");
+    var btnImprimir  = document.getElementById("btnImprimir");
+    var btnFacturar  = document.getElementById("btnFacturar");
+    var btnReiniciar = document.getElementById("btnReiniciar");
     var btnBuscar    = document.getElementById("btnBuscar");
     var btnEnviar    = document.getElementById("btnEnviar");
     var btnAprobar   = document.getElementById("btnAprobar");
@@ -158,28 +141,44 @@
     var resImp       = document.getElementById("resImpuestos");
     var resTot       = document.getElementById("resTotal");
 
-    // === Eventos ===
+    // --- Detect URL params for “approve” from email link ---
+    var params = new URLSearchParams(location.search);
+    if (params.get("action")==="approve" && params.get("numero")) {
+      var numero = params.get("numero");
+      buscarCotizacion(numero).then(function(data){
+        mostrarStripePayment(data);
+      }).catch(function(e){
+        alert("Cotización no encontrada");
+      });
+      // Skip normal initialization
+      return;
+    }
+
+    // --- Event Listeners ---
     btnAgregar.addEventListener("click", agregarFila);
     btnEliminar.addEventListener("click", eliminarFila);
     btnGuardar.addEventListener("click", guardarCotizacion);
-    btnBuscar.addEventListener("click", buscar);
+    btnImprimir.addEventListener("click", function(){ window.print(); });
+    btnFacturar.addEventListener("click", function(){ window.print(); });
+    btnReiniciar.addEventListener("click", function(){ location.reload(); });
+    btnBuscar.addEventListener("click", function(){ buscar().catch(e=>alert(e.message)); });
     btnEnviar.addEventListener("click", enviarEmail);
     btnAprobar.addEventListener("click", aprobarYpagar);
     [inpDesc, inpImp, inpAnt].forEach(function(el){
       el.addEventListener("input", recalcularTotales);
     });
 
-    // === Funciones ===
+    // --- Functions ---
+
     function agregarFila() {
       var row = document.createElement("tr");
-      var html = ""
+      row.innerHTML = ""
         + "<td>" + (tablaBody.rows.length+1) + "</td>"
         + "<td><input class='descripcion' type='text'></td>"
-        + "<td><input class='cantidad' type='number' min='1' value='1'></td>"
-        + "<td><input class='precio'   type='number' min='0' step='0.01' value='0.00'></td>"
+        + "<td><input class='cantidad'   type='number' min='1' value='1'></td>"
+        + "<td><input class='precio'      type='number' min='0' step='0.01' value='0.00'></td>"
         + "<td class='total'>$0.00</td>"
-        + "<td><button class='btnEliminar'>Eliminar</button></td>";
-      row.innerHTML = html;
+        + "<td><button class='btnEliminar btn warning'>Eliminar</button></td>";
       tablaBody.appendChild(row);
       row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
       row.querySelector(".precio").addEventListener("input", recalcularTotales);
@@ -190,58 +189,56 @@
     }
 
     function eliminarFila() {
-      if (tablaBody.rows.length > 0) {
+      if (tablaBody.rows.length>0) {
         tablaBody.deleteRow(-1);
         recalcularTotales();
       }
     }
 
     function recalcularTotales() {
-      var subtotal = 0;
+      var subtotal=0;
       tablaBody.querySelectorAll("tr").forEach(function(r){
-        var c = parseFloat(r.querySelector(".cantidad").value) || 0;
-        var p = parseFloat(r.querySelector(".precio").value)  || 0;
-        var t = c * p;
-        r.querySelector(".total").innerText = "$" + t.toFixed(2);
+        var c = parseFloat(r.querySelector(".cantidad").value)||0;
+        var p = parseFloat(r.querySelector(".precio").value)||0;
+        var t = c*p;
+        r.querySelector(".total").innerText = "$"+t.toFixed(2);
         subtotal += t;
       });
-      var dPct = parseFloat(inpDesc.value) || 0;
-      var dAmt = subtotal * dPct / 100;
-      var iPct = parseFloat(inpImp.value)  || 0;
-      var iAmt = (subtotal - dAmt) * iPct / 100;
-      var antic = parseFloat(inpAnt.value) || 0;
-      var neto = subtotal - dAmt + iAmt - antic;
-      resSub.innerText  = subtotal.toFixed(2);
+      var dPct = parseFloat(inpDesc.value)||0, dAmt = subtotal*dPct/100;
+      var iPct = parseFloat(inpImp.value)||0,  iAmt = (subtotal-dAmt)*iPct/100;
+      var antic= parseFloat(inpAnt.value)||0;
+      var neto = subtotal-dAmt+iAmt-antic;
+      resSub.innerText = subtotal.toFixed(2);
       resDesc.innerText = dAmt.toFixed(2);
-      resImp.innerText  = iAmt.toFixed(2);
-      resTot.innerText  = neto.toFixed(2);
+      resImp.innerText = iAmt.toFixed(2);
+      resTot.innerText = neto.toFixed(2);
     }
 
     function leerFormulario() {
       return {
-        fecha:          document.getElementById("fecha").value,
-        numero:         document.getElementById("numero").value,
-        clienteNombre:  document.getElementById("clienteNombre").value,
-        clienteTipo:    document.getElementById("clienteTipo").value,
+        fecha: document.getElementById("fecha").value,
+        numero: document.getElementById("numero").value,
+        clienteNombre: document.getElementById("clienteNombre").value,
+        clienteTipo: document.getElementById("clienteTipo").value,
         clienteDireccion: document.getElementById("clienteDireccion").value,
-        clienteEmail:     document.getElementById("clienteEmail").value,
-        clienteTelefono:  document.getElementById("clienteTelefono").value,
+        clienteEmail: document.getElementById("clienteEmail").value,
+        clienteTelefono: document.getElementById("clienteTelefono").value,
         items: Array.from(tablaBody.querySelectorAll("tr")).map(function(r,i){
           return {
             id: i+1,
             descripcion: r.querySelector(".descripcion").value,
             cantidad: +r.querySelector(".cantidad").value,
-            precio:   +r.querySelector(".precio").value,
-            total:    parseFloat(r.querySelector(".total").innerText.replace("$",""))
+            precio: +r.querySelector(".precio").value,
+            total: parseFloat(r.querySelector(".total").innerText.replace("$",""))
           };
         }),
-        concepto:       document.getElementById("inputConcepto").value,
-        observaciones:  document.getElementById("inputObservaciones").value,
-        subtotal:       parseFloat(resSub.innerText),
-        descuento:      parseFloat(resDesc.innerText),
-        impuestos:      parseFloat(resImp.innerText),
-        anticipo:       parseFloat(inpAnt.value),
-        total:          parseFloat(resTot.innerText)
+        concepto: document.getElementById("inputConcepto").value,
+        observaciones: document.getElementById("inputObservaciones").value,
+        subtotal: parseFloat(resSub.innerText),
+        descuento: parseFloat(resDesc.innerText),
+        impuestos: parseFloat(resImp.innerText),
+        anticipo: parseFloat(inpAnt.value),
+        total: parseFloat(resTot.innerText)
       };
     }
 
@@ -251,13 +248,16 @@
       alert("Cotización guardada.");
     }
 
+    async function buscarCotizacion(numero) {
+      var snap = await db.collection("cotizaciones").where("numero","==",numero).get();
+      if (snap.empty) throw new Error("No encontrado");
+      return snap.docs[0].data();
+    }
+
     async function buscar() {
       var num = document.getElementById("inputNumeroBuscar").value.trim();
-      if (!num) return alert("Escribe un número");
-      var colec = num.startsWith("FAC") ? "facturas" : "cotizaciones";
-      var snap = await db.collection(colec).where("numero","==",num).get();
-      if (snap.empty) return alert("No encontrado");
-      snap.forEach(function(doc){ llenarFormulario(doc.data()); });
+      var data = await buscarCotizacion(num);
+      llenarFormulario(data);
     }
 
     function llenarFormulario(data) {
@@ -283,41 +283,56 @@
 
     async function enviarEmail() {
       var data = leerFormulario();
-      var res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(data)
-      });
-      if (res.ok) alert("Correo enviado."); else alert("Error email.");
+      try {
+        var res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error(res.status);
+        alert("Correo enviado.");
+      } catch (e) {
+        console.error(e);
+        alert("Error enviando correo.");
+      }
     }
 
     async function aprobarYpagar() {
       var data = leerFormulario();
       await db.collection("facturas").doc(data.numero).set(data);
-      var resp = await fetch("https://mail-server-byrb.onrender.com/create-payment-intent", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({amount:data.total})
-      });
-      var json = await resp.json();
-      var clientSecret = json.clientSecret;
-      document.querySelector(".container").innerHTML =
-        "<h2>Pagar Anticipo: $" + data.total.toFixed(2) + "</h2>" +
-        "<div id='card-element'></div>" +
-        "<button id='pay' class='btn primary'>Pagar</button>";
-      var elements = stripe.elements();
-      var card = elements.create("card");
-      card.mount("#card-element");
-      document.getElementById("pay").addEventListener("click", async function(){
-        var result = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: {card:card}
+      mostrarStripePayment(data);
+    }
+
+    function mostrarStripePayment(data) {
+      document.querySelector(".container").innerHTML = ""
+        + "<h2>Pagar Anticipo: $" + data.anticipo.toFixed(2) + "</h2>"
+        + "<div id='card-element'></div>"
+        + "<button id='btnPagar' class='btn primary'>Pagar</button>";
+      fetch("https://mail-server-byrb.onrender.com/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ amount: data.anticipo })
+      })
+      .then(r=>r.json())
+      .then(function(json){
+        var elements = stripe.elements();
+        var card = elements.create("card");
+        card.mount("#card-element");
+        document.getElementById("btnPagar").addEventListener("click", function(){
+          stripe.confirmCardPayment(json.clientSecret, { payment_method:{ card:card }})
+            .then(function(result){
+              if (result.error) alert(result.error.message);
+              else alert("Pago exitoso. Gracias.");
+            });
         });
-        if (result.error) alert(result.error.message);
-        else alert("Pago exitoso");
+      })
+      .catch(function(e){
+        console.error(e);
+        alert("Error iniciando pago.");
       });
     }
 
-    // Inicializar al cargar
+    // Inicializar cálculos al cargar
     recalcularTotales();
   </script>
 </body>
