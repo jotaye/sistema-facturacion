@@ -1,0 +1,1 @@
+// Stripe Elements integración completa

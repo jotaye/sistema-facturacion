@@ -1,0 +1,1 @@
+// Script funcional con Firebase, Stripe y lógica de cotización
