@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sistema de Cotización – Jotaye Group LLC</title>
-  <link rel="icon" href="favicon.ico">
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
   <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3/"></script>
   <!-- Firebase v8 -->
@@ -15,7 +15,7 @@
 <body>
   <div class="container">
     <header>
-      <img src="logo-header.png" alt="Logo Jotaye" class="logo">
+      <img src="logo-header.png" alt="Logo Jotaye" class="logo" />
       <h1>COTIZACIÓN</h1>
     </header>
 
@@ -30,19 +30,19 @@
       </div>
       <div class="cliente">
         <h3>Datos del Cliente</h3>
-        <label>Nombre:   <input type="text" id="clienteNombre"></label><br>
-        <label>Tipo:     <input type="text" id="clienteTipo"></label><br>
-        <label>Dirección:<input type="text" id="clienteDireccion"></label><br>
-        <label>Email:    <input type="email" id="clienteEmail"></label><br>
-        <label>Teléfono: <input type="text" id="clienteTelefono"></label>
+        <label>Nombre:   <input type="text" id="clienteNombre" /></label><br>
+        <label>Tipo:     <input type="text" id="clienteTipo" /></label><br>
+        <label>Dirección:<input type="text" id="clienteDireccion" /></label><br>
+        <label>Email:    <input type="email" id="clienteEmail" /></label><br>
+        <label>Teléfono: <input type="text" id="clienteTelefono" /></label>
       </div>
     </section>
 
     <!-- Encabezado superior -->
     <section class="encabezado-superior">
-      <label>Fecha Emisión: <input type="date" id="fecha"></label>
-      <label>N° Cotización: <input type="text" id="numero" value="COT-20250613-0001"></label>
-      <label>Buscar N°: <input type="text" id="inputNumeroBuscar" placeholder="COT-...">
+      <label>Fecha Emisión: <input type="date" id="fecha" /></label>
+      <label>N° Cotización: <input type="text" id="numero" value="COT-20250613-0001" /></label>
+      <label>Buscar N°: <input type="text" id="inputNumeroBuscar" placeholder="COT-..." />
         <button id="btnBuscar" class="btn primary">Cargar</button>
       </label>
     </section>
@@ -53,16 +53,15 @@
       <table id="tablaItems">
         <thead>
           <tr>
-            <th>ID</th><th>Descripción</th><th>Cantidad</th>
-            <th>Precio Unit.</th><th>Total</th><th>Acción</th>
+            <th>ID</th><th>Descripción</th><th>Cantidad</th><th>Precio Unit.</th><th>Total</th><th>Acción</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>1</td>
-            <td><input class="descripcion" type="text"></td>
-            <td><input class="cantidad" type="number" min="1" value="1"></td>
-            <td><input class="precio"   type="number" min="0" step="0.01" value="0.00"></td>
+            <td><input class="descripcion" type="text" /></td>
+            <td><input class="cantidad" type="number" min="1" value="1" /></td>
+            <td><input class="precio"   type="number" min="0" step="0.01" value="0.00" /></td>
             <td class="total">$0.00</td>
             <td><button class="btnEliminar btn warning">Eliminar</button></td>
           </tr>
@@ -77,7 +76,7 @@
     <!-- Observaciones -->
     <section class="concepto-observaciones">
       <h2>Información Adicional</h2>
-      <label>Concepto:<input type="text" id="inputConcepto" placeholder="Ej. Remodelación de baño"></label><br>
+      <label>Concepto:     <input type="text" id="inputConcepto" placeholder="Ej. Remodelación de baño" /></label><br>
       <label>Observaciones:<br>
         <textarea id="inputObservaciones" rows="3" placeholder="Condiciones, garantías, etc."></textarea>
       </label>
@@ -87,11 +86,11 @@
     <section class="resumen-factura">
       <h2>Resumen de Cotización</h2>
       <div>Subtotal: $<span id="resSubtotal">0.00</span></div>
-      <div>Descuento (%): <input type="number" id="inputDescuento" min="0" max="100" value="0"></div>
+      <div>Descuento (%): <input type="number" id="inputDescuento" min="0" max="100" value="0" /></div>
       <div>Monto Descuento: $<span id="resDescuento">0.00</span></div>
-      <div>Impuestos (%): <input type="number" id="inputImpuesto" min="0" max="100" value="10"></div>
+      <div>Impuestos (%): <input type="number" id="inputImpuesto" min="0" max="100" value="10" /></div>
       <div>Monto Impuesto: $<span id="resImpuestos">0.00</span></div>
-      <div>Anticipo: <input type="number" id="inputAnticipo" min="0" step="0.01" value="0"></div>
+      <div>Anticipo: <input type="number" id="inputAnticipo" min="0" step="0.01" value="0" /></div>
       <div class="total-neto">Total Neto: $<span id="resTotal">0.00</span></div>
     </section>
 
@@ -107,7 +106,7 @@
   </div>
 
   <script>
-    // --- Firebase v8 Init ---
+    // === Inicializar Firebase v8 ===
     var firebaseConfig = {
       apiKey: "AIzaSyBXBGILqL1JArsbJkUhX79veAnvkNcSg",
       authDomain: "presupuestos-1dd33.firebaseapp.com",
@@ -119,10 +118,10 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    // --- Stripe Init ---
+    // === Inicializar Stripe ===
     var stripe = Stripe("pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI");
 
-    // --- DOM Refs ---
+    // === Referencias DOM ===
     var tablaBody    = document.querySelector("#tablaItems tbody");
     var btnAgregar   = document.getElementById("btnAgregarFila");
     var btnEliminar  = document.getElementById("btnEliminarFila");
@@ -141,44 +140,30 @@
     var resImp       = document.getElementById("resImpuestos");
     var resTot       = document.getElementById("resTotal");
 
-    // --- Detect URL params for “approve” from email link ---
-    var params = new URLSearchParams(location.search);
-    if (params.get("action")==="approve" && params.get("numero")) {
-      var numero = params.get("numero");
-      buscarCotizacion(numero).then(function(data){
-        mostrarStripePayment(data);
-      }).catch(function(e){
-        alert("Cotización no encontrada");
-      });
-      // Skip normal initialization
-      return;
-    }
-
-    // --- Event Listeners ---
+    // === Eventos ===
     btnAgregar.addEventListener("click", agregarFila);
     btnEliminar.addEventListener("click", eliminarFila);
     btnGuardar.addEventListener("click", guardarCotizacion);
     btnImprimir.addEventListener("click", function(){ window.print(); });
     btnFacturar.addEventListener("click", function(){ window.print(); });
     btnReiniciar.addEventListener("click", function(){ location.reload(); });
-    btnBuscar.addEventListener("click", function(){ buscar().catch(e=>alert(e.message)); });
+    btnBuscar.addEventListener("click", buscar);
     btnEnviar.addEventListener("click", enviarEmail);
     btnAprobar.addEventListener("click", aprobarYpagar);
     [inpDesc, inpImp, inpAnt].forEach(function(el){
       el.addEventListener("input", recalcularTotales);
     });
 
-    // --- Functions ---
-
+    // === Funciones ===
     function agregarFila() {
       var row = document.createElement("tr");
-      row.innerHTML = ""
-        + "<td>" + (tablaBody.rows.length+1) + "</td>"
-        + "<td><input class='descripcion' type='text'></td>"
-        + "<td><input class='cantidad'   type='number' min='1' value='1'></td>"
-        + "<td><input class='precio'      type='number' min='0' step='0.01' value='0.00'></td>"
-        + "<td class='total'>$0.00</td>"
-        + "<td><button class='btnEliminar btn warning'>Eliminar</button></td>";
+      row.innerHTML =
+        "<td>" + (tablaBody.rows.length+1) + "</td>" +
+        "<td><input class='descripcion' type='text'></td>" +
+        "<td><input class='cantidad' type='number' min='1' value='1'></td>" +
+        "<td><input class='precio'   type='number' min='0' step='0.01' value='0.00'></td>" +
+        "<td class='total'>$0.00</td>" +
+        "<td><button class='btnEliminar btn warning'>Eliminar</button></td>";
       tablaBody.appendChild(row);
       row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
       row.querySelector(".precio").addEventListener("input", recalcularTotales);
@@ -189,14 +174,14 @@
     }
 
     function eliminarFila() {
-      if (tablaBody.rows.length>0) {
+      if (tablaBody.rows.length > 0) {
         tablaBody.deleteRow(-1);
         recalcularTotales();
       }
     }
 
     function recalcularTotales() {
-      var subtotal=0;
+      var subtotal = 0;
       tablaBody.querySelectorAll("tr").forEach(function(r){
         var c = parseFloat(r.querySelector(".cantidad").value)||0;
         var p = parseFloat(r.querySelector(".precio").value)||0;
@@ -206,12 +191,12 @@
       });
       var dPct = parseFloat(inpDesc.value)||0, dAmt = subtotal*dPct/100;
       var iPct = parseFloat(inpImp.value)||0,  iAmt = (subtotal-dAmt)*iPct/100;
-      var antic= parseFloat(inpAnt.value)||0;
+      var antic = parseFloat(inpAnt.value)||0;
       var neto = subtotal-dAmt+iAmt-antic;
-      resSub.innerText = subtotal.toFixed(2);
+      resSub.innerText  = subtotal.toFixed(2);
       resDesc.innerText = dAmt.toFixed(2);
-      resImp.innerText = iAmt.toFixed(2);
-      resTot.innerText = neto.toFixed(2);
+      resImp.innerText  = iAmt.toFixed(2);
+      resTot.innerText  = neto.toFixed(2);
     }
 
     function leerFormulario() {
@@ -228,8 +213,8 @@
             id: i+1,
             descripcion: r.querySelector(".descripcion").value,
             cantidad: +r.querySelector(".cantidad").value,
-            precio: +r.querySelector(".precio").value,
-            total: parseFloat(r.querySelector(".total").innerText.replace("$",""))
+            precio:   +r.querySelector(".precio").value,
+            total:    parseFloat(r.querySelector(".total").innerText.replace("$",""))
           };
         }),
         concepto: document.getElementById("inputConcepto").value,
@@ -248,26 +233,23 @@
       alert("Cotización guardada.");
     }
 
-    async function buscarCotizacion(numero) {
-      var snap = await db.collection("cotizaciones").where("numero","==",numero).get();
-      if (snap.empty) throw new Error("No encontrado");
-      return snap.docs[0].data();
-    }
-
     async function buscar() {
       var num = document.getElementById("inputNumeroBuscar").value.trim();
-      var data = await buscarCotizacion(num);
-      llenarFormulario(data);
+      if (!num) return alert("Escribe un número");
+      var colec = num.startsWith("FAC") ? "facturas" : "cotizaciones";
+      var snap = await db.collection(colec).where("numero","==",num).get();
+      if (snap.empty) return alert("No encontrado");
+      snap.forEach(function(doc){ llenarFormulario(doc.data()); });
     }
 
     function llenarFormulario(data) {
-      document.getElementById("fecha").value            = data.fecha;
-      document.getElementById("numero").value           = data.numero;
-      document.getElementById("clienteNombre").value    = data.clienteNombre;
-      document.getElementById("clienteTipo").value      = data.clienteTipo;
+      document.getElementById("fecha").value = data.fecha;
+      document.getElementById("numero").value = data.numero;
+      document.getElementById("clienteNombre").value = data.clienteNombre;
+      document.getElementById("clienteTipo").value = data.clienteTipo;
       document.getElementById("clienteDireccion").value = data.clienteDireccion;
-      document.getElementById("clienteEmail").value     = data.clienteEmail;
-      document.getElementById("clienteTelefono").value  = data.clienteTelefono;
+      document.getElementById("clienteEmail").value = data.clienteEmail;
+      document.getElementById("clienteTelefono").value = data.clienteTelefono;
       tablaBody.innerHTML = "";
       data.items.forEach(function(item){
         agregarFila();
@@ -286,13 +268,13 @@
       try {
         var res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
           method: "POST",
-          headers: { "Content-Type":"application/json" },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
-        if (!res.ok) throw new Error(res.status);
+        if (!res.ok) throw new Error("HTTP " + res.status);
         alert("Correo enviado.");
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
         alert("Error enviando correo.");
       }
     }
@@ -300,39 +282,35 @@
     async function aprobarYpagar() {
       var data = leerFormulario();
       await db.collection("facturas").doc(data.numero).set(data);
-      mostrarStripePayment(data);
-    }
-
-    function mostrarStripePayment(data) {
-      document.querySelector(".container").innerHTML = ""
-        + "<h2>Pagar Anticipo: $" + data.anticipo.toFixed(2) + "</h2>"
-        + "<div id='card-element'></div>"
-        + "<button id='btnPagar' class='btn primary'>Pagar</button>";
-      fetch("https://mail-server-byrb.onrender.com/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        body: JSON.stringify({ amount: data.anticipo })
-      })
-      .then(r=>r.json())
-      .then(function(json){
+      try {
+        var resp = await fetch("https://mail-server-byrb.onrender.com/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: data.total })
+        });
+        var json = await resp.json();
+        if (!resp.ok) throw new Error(json.error || resp.status);
+        document.querySelector(".container").innerHTML =
+          "<h2>Pagar Anticipo: $" + data.total.toFixed(2) + "</h2>" +
+          "<div id='card-element'></div>" +
+          "<button id='pay' class='btn primary'>Pagar</button>";
         var elements = stripe.elements();
         var card = elements.create("card");
         card.mount("#card-element");
-        document.getElementById("btnPagar").addEventListener("click", function(){
-          stripe.confirmCardPayment(json.clientSecret, { payment_method:{ card:card }})
-            .then(function(result){
-              if (result.error) alert(result.error.message);
-              else alert("Pago exitoso. Gracias.");
-            });
+        document.getElementById("pay").addEventListener("click", async function(){
+          var result = await stripe.confirmCardPayment(json.clientSecret, {
+            payment_method: { card: card }
+          });
+          if (result.error) alert(result.error.message);
+          else alert("Pago exitoso");
         });
-      })
-      .catch(function(e){
-        console.error(e);
-        alert("Error iniciando pago.");
-      });
+      } catch (err) {
+        console.error(err);
+        alert("Error creando PaymentIntent.");
+      }
     }
 
-    // Inicializar cálculos al cargar
+    // Inicialización inicial
     recalcularTotales();
   </script>
 </body>
