@@ -1,44 +1,46 @@
-// === Inicializar Firebase v8 ===
+// script.js
+
+// 1) Inicializar Firebase v8
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyBXBGILqL1JArsbJkKjUhX79veAnvkNcSg",
+  authDomain: "presupuestos-1dd33.firebaseapp.com",
+  projectId: "presupuestos-1dd33",
+  storageBucket: "presupuestos-1dd33.appspot.com",
+  messagingSenderId: "1077139821356",
+  appId: "1:1077139821356:web:a831b1d90777b583b0d289"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Clave pública Stripe
+// 2) Instanciar Stripe (global)
 const stripe = Stripe("pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI");
 
-// Referencias DOM
-const tablaBody = document.querySelector("#tablaItems tbody");
-const btnAgregar = document.getElementById("btnAgregarFila");
-const btnEliminar = document.getElementById("btnEliminarFila");
-const btnGuardar  = document.getElementById("btnGuardar");
-const btnBuscar   = document.getElementById("btnBuscar");
-const btnEnviar   = document.getElementById("btnEnviar");
-const btnAprobar  = document.getElementById("btnAprobar");
-const inputDesc   = document.getElementById("inputDescuento");
-const inputImp    = document.getElementById("inputImpuesto");
-const inputAnt    = document.getElementById("inputAnticipo");
-const resSub      = document.getElementById("resSubtotal");
-const resDesc     = document.getElementById("resDescuento");
-const resImp      = document.getElementById("resImpuestos");
-const resTot      = document.getElementById("resTotal");
+// 3) Referencias DOM
+const tablaBody    = document.querySelector("#tablaItems tbody");
+const btnAgregar   = document.getElementById("btnAgregarFila");
+const btnEliminar  = document.getElementById("btnEliminarFila");
+const btnGuardar   = document.getElementById("btnGuardar");
+const btnBuscar    = document.getElementById("btnBuscar");
+const btnEnviar    = document.getElementById("btnEnviar");
+const btnAprobar   = document.getElementById("btnAprobar");
+const inpDesc      = document.getElementById("inputDescuento");
+const inpImp       = document.getElementById("inputImpuesto");
+const inpAnt       = document.getElementById("inputAnticipo");
+const resSub       = document.getElementById("resSubtotal");
+const resDesc      = document.getElementById("resDescuento");
+const resImp       = document.getElementById("resImpuestos");
+const resTot       = document.getElementById("resTotal");
 
-// Eventos
+// 4) Eventos
 btnAgregar.addEventListener("click", agregarFila);
 btnEliminar.addEventListener("click", eliminarFila);
 btnGuardar.addEventListener("click", guardarCotizacion);
 btnBuscar.addEventListener("click", buscar);
 btnEnviar.addEventListener("click", enviarEmail);
 btnAprobar.addEventListener("click", aprobarYpagar);
-[inputDesc, inputImp, inputAnt].forEach(el=>el.addEventListener("input", recalcularTotales));
+[inpDesc, inpImp, inpAnt].forEach(el=>el.addEventListener("input", recalcularTotales));
 
-// ===== Funciones =====
+// 5) Funciones
 
 function agregarFila() {
   const row = document.createElement("tr");
@@ -53,13 +55,14 @@ function agregarFila() {
   row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
   row.querySelector(".precio").addEventListener("input", recalcularTotales);
   row.querySelector(".btnEliminar").addEventListener("click", ()=>{
-    row.remove(); recalcularTotales();
+    row.remove();
+    recalcularTotales();
   });
   recalcularTotales();
 }
 
 function eliminarFila() {
-  if(tablaBody.rows.length>0){
+  if (tablaBody.rows.length > 0) {
     tablaBody.deleteRow(-1);
     recalcularTotales();
   }
@@ -68,18 +71,19 @@ function eliminarFila() {
 function recalcularTotales() {
   let subtotal = 0;
   tablaBody.querySelectorAll("tr").forEach(r=>{
-    const c = parseFloat(r.querySelector(".cantidad").value)||0;
-    const p = parseFloat(r.querySelector(".precio").value)||0;
-    const t = c*p;
+    const c = parseFloat(r.querySelector(".cantidad").value) || 0;
+    const p = parseFloat(r.querySelector(".precio").value)  || 0;
+    const t = c * p;
     r.querySelector(".total").innerText = `$${t.toFixed(2)}`;
     subtotal += t;
   });
-  const dPct = parseFloat(inputDesc.value)||0;
-  const dAmt = subtotal*dPct/100;
-  const iPct = parseFloat(inputImp.value)||0;
-  const iAmt = (subtotal-dAmt)*iPct/100;
-  const antic = parseFloat(inputAnt.value)||0;
-  const neto = subtotal-dAmt+iAmt-antic;
+  const dPct = parseFloat(inpDesc.value) || 0;
+  const dAmt = (subtotal * dPct) / 100;
+  const iPct = parseFloat(inpImp.value)  || 0;
+  const iAmt = ((subtotal - dAmt) * iPct) / 100;
+  const anticipo = parseFloat(inpAnt.value) || 0;
+  const neto = subtotal - dAmt + iAmt - anticipo;
+
   resSub.innerText  = subtotal.toFixed(2);
   resDesc.innerText = dAmt.toFixed(2);
   resImp.innerText  = iAmt.toFixed(2);
@@ -88,27 +92,27 @@ function recalcularTotales() {
 
 function leerFormulario() {
   return {
-    fecha: document.getElementById("fecha").value,
-    numero: document.getElementById("numero").value,
-    clienteNombre: document.getElementById("clienteNombre").value,
-    clienteTipo: document.getElementById("clienteTipo").value,
+    fecha:          document.getElementById("fecha").value,
+    numero:         document.getElementById("numero").value,
+    clienteNombre:  document.getElementById("clienteNombre").value,
+    clienteTipo:    document.getElementById("clienteTipo").value,
     clienteDireccion: document.getElementById("clienteDireccion").value,
-    clienteEmail: document.getElementById("clienteEmail").value,
-    clienteTelefono: document.getElementById("clienteTelefono").value,
+    clienteEmail:     document.getElementById("clienteEmail").value,
+    clienteTelefono:  document.getElementById("clienteTelefono").value,
     items: Array.from(tablaBody.querySelectorAll("tr")).map((r,i)=>({
-      id: i+1,
+      id: i + 1,
       descripcion: r.querySelector(".descripcion").value,
-      cantidad: +r.querySelector(".cantidad").value,
-      precio: +r.querySelector(".precio").value,
-      total: parseFloat(r.querySelector(".total").innerText.replace("$",""))
+      cantidad:    +r.querySelector(".cantidad").value,
+      precio:      +r.querySelector(".precio").value,
+      total:       parseFloat(r.querySelector(".total").innerText.replace("$",""))
     })),
-    concepto: document.getElementById("inputConcepto").value,
-    observaciones: document.getElementById("inputObservaciones").value,
-    subtotal: parseFloat(resSub.innerText),
-    descuento: parseFloat(resDesc.innerText),
-    impuestos: parseFloat(resImp.innerText),
-    anticipo: parseFloat(inputAnt.value),
-    total: parseFloat(resTot.innerText)
+    concepto:        document.getElementById("inputConcepto").value,
+    observaciones:   document.getElementById("inputObservaciones").value,
+    subtotal:        parseFloat(resSub.innerText),
+    descuento:       parseFloat(resDesc.innerText),
+    impuestos:       parseFloat(resImp.innerText),
+    anticipo:        parseFloat(inpAnt.value),
+    total:           parseFloat(resTot.innerText)
   };
 }
 
@@ -120,11 +124,11 @@ async function guardarCotizacion() {
 
 async function buscar() {
   const num = document.getElementById("inputNumeroBuscar").value.trim();
-  if(!num) return alert("Escribe un número.");
-  const colec = num.startsWith("FAC") ? "facturas" : "cotizaciones";
-  const snap = await db.collection(colec).where("numero","==",num).get();
-  if(snap.empty) return alert("No encontrado.");
-  snap.forEach(doc=>llenarFormulario(doc.data()));
+  if (!num) return alert("Escribe un número");
+  const col = num.startsWith("FAC") ? "facturas" : "cotizaciones";
+  const snap = await db.collection(col).where("numero","==",num).get();
+  if (snap.empty) return alert("No encontrado");
+  snap.forEach(doc => llenarFormulario(doc.data()));
 }
 
 function llenarFormulario(data) {
@@ -136,51 +140,51 @@ function llenarFormulario(data) {
   document.getElementById("clienteEmail").value = data.clienteEmail;
   document.getElementById("clienteTelefono").value = data.clienteTelefono;
   tablaBody.innerHTML = "";
-  data.items.forEach(item=>{
+  data.items.forEach(item => {
     agregarFila();
     const row = tablaBody.lastElementChild;
     row.querySelector(".descripcion").value = item.descripcion;
-    row.querySelector(".cantidad").value = item.cantidad;
-    row.querySelector(".precio").value = item.precio;
+    row.querySelector(".cantidad").value    = item.cantidad;
+    row.querySelector(".precio").value      = item.precio;
   });
   recalcularTotales();
-  document.getElementById("inputConcepto").value = data.concepto;
+  document.getElementById("inputConcepto").value      = data.concepto;
   document.getElementById("inputObservaciones").value = data.observaciones;
 }
 
 async function enviarEmail() {
   const data = leerFormulario();
-  const res = await fetch("/send-quotation", {
+  const res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
     method: "POST",
-    headers: { "Content-Type":"application/json" },
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify(data)
   });
-  if(res.ok) alert("Correo enviado con botón APPROVE."); else alert("Error email.");
+  if (res.ok) alert("Correo enviado."); else alert("Error email.");
 }
 
 async function aprobarYpagar() {
   const data = leerFormulario();
-  // Guardar factura:
+  // 1) Guardar factura
   await db.collection("facturas").doc(data.numero).set(data);
-  // Crear PaymentIntent:
-  const { clientSecret } = await fetch("/create-payment-intent", {
+  // 2) Crear PaymentIntent
+  const { clientSecret } = await fetch("https://mail-server-byrb.onrender.com/create-payment-intent", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ amount: data.total })
   }).then(r=>r.json());
-  // Mostrar Stripe Elements:
+  // 3) Mostrar Stripe Elements
   document.querySelector(".container").innerHTML = `
-    <h2>Pagar $${data.total.toFixed(2)}</h2>
+    <h2>Pagar Anticipo $${data.total.toFixed(2)}</h2>
     <div id="card-element"></div>
     <button id="pay">Pagar</button>`;
   const elements = stripe.elements();
   const card = elements.create("card");
   card.mount("#card-element");
-  document.getElementById("pay").addEventListener("click",async()=>{
-    const {error} = await stripe.confirmCardPayment(clientSecret,{payment_method:{card}});
-    if(error) alert(error.message); else alert("Pago exitoso");
+  document.getElementById("pay").addEventListener("click", async () => {
+    const { error } = await stripe.confirmCardPayment(clientSecret, { payment_method:{ card }});
+    if (error) alert(error.message); else alert("Pago exitoso");
   });
 }
 
-// Inicializar cálculo
+// Inicializa los totales la primera vez
 recalcularTotales();
