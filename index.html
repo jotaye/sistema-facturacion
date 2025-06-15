@@ -104,6 +104,9 @@
 
   <script>
   (async function(){
+    // — URL base de tu backend en Render —
+    const BACKEND_URL = "https://mail-server-byrb.onrender.com";
+
     // — Firebase v8 Init —
     const firebaseConfig = {
       apiKey: "AIzaSyBXBGILqL1JArsbJkUhX79veAnvkNcSg",
@@ -142,7 +145,7 @@
     btnAgregar  .addEventListener("click", agregarFila);
     btnEliminar .addEventListener("click", eliminarFila);
     btnGuardar  .addEventListener("click", guardarCotizacion);
-    btnImprimir .addEventListener("click", ()=>window.print());
+    btnImprimir .addEventListener(" click", ()=>window.print());
     btnFacturar .addEventListener("click", ()=>window.print());
     btnReiniciar.addEventListener("click", ()=>location.reload());
     btnBuscar   .addEventListener("click", ()=>buscar().catch(e=>alert(e.message)));
@@ -153,7 +156,7 @@
     });
     [inpDesc, inpImp, inpAnt].forEach(i=>i.addEventListener("input", recalcularTotales));
 
-    // — Detección de URL params —
+    // — Detectar URL params —
     const params = new URLSearchParams(location.search);
     const numero = params.get("numero");
     if (params.get("action")==="checkout" && numero) {
@@ -264,8 +267,8 @@
     }
 
     function llenarFormulario(d) {
-      document.getElementById("fecha").value = d.fecha;
-      document.getElementById("numero").value = d.numero;
+      document.getElementById("fecha").value            = d.fecha;
+      document.getElementById("numero").value           = d.numero;
       document.getElementById("clienteNombre").value    = d.clienteNombre;
       document.getElementById("clienteTipo").value      = d.clienteTipo;
       document.getElementById("clienteDireccion").value = d.clienteDireccion;
@@ -287,7 +290,7 @@
     async function enviarEmail() {
       const d = leerFormulario();
       try {
-        const res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
+        const res = await fetch(`${BACKEND_URL}/send-quotation`, {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify(d)
@@ -296,7 +299,7 @@
         alert("Correo enviado");
       } catch (e) {
         console.error(e);
-        alert("Error enviando correo");
+        alert("Error enviando correo:\n" + e.message);
       }
     }
 
@@ -306,13 +309,13 @@
       }
       try {
         const res = await fetch(
-          "https://mail-server-byrb.onrender.com/create-checkout-session",
+          `${BACKEND_URL}/create-checkout-session`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              numero: d.numero,
-              anticipo: d.anticipo,
+              numero:       d.numero,
+              anticipo:     d.anticipo,
               clienteEmail: d.clienteEmail
             })
           }
