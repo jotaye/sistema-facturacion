@@ -153,29 +153,23 @@
     });
     [inpDesc, inpImp, inpAnt].forEach(i=>i.addEventListener("input", recalcularTotales));
 
-    // — Detección de URL params  —
+    // — Detección de URL params —
     const params = new URLSearchParams(location.search);
     const numero = params.get("numero");
     if (params.get("action")==="checkout" && numero) {
-      // El cliente vino del email, inicia Checkout:
       const d = await buscarCotizacion(numero);
       return iniciarCheckout(d);
     }
     if (params.get("success")==="true" && numero) {
-      // Tras pago exitoso:
       const d = await buscarCotizacion(numero);
-      // Guardar factura en Firestore
       await db.collection("facturas").doc(numero).set(d);
-      // Ver la factura y preparar impresión
       llenarFormulario(d);
-      // Ocultar botones irrelevantes
       ["btnGuardar","btnEnviar","btnFacturar","btnBuscar","btnAprobar"]
         .forEach(id=>document.getElementById(id).style.display="none");
       btnImprimir.innerText = "🖨️ Imprimir Factura";
       return;
     }
 
-    // — Inicializa cálculo y todo —
     recalcularTotales();
 
     // — Funciones de filas y totales —
@@ -223,7 +217,6 @@
       resTot.innerText = (sub - d + i - a).toFixed(2);
     }
 
-    // — Firestore: guardar / buscar —
     function leerFormulario() {
       return {
         fecha: document.getElementById("fecha").value,
@@ -291,7 +284,6 @@
       recalcularTotales();
     }
 
-    // — Enviar cotización por email —
     async function enviarEmail() {
       const d = leerFormulario();
       try {
@@ -308,25 +300,32 @@
       }
     }
 
-    // — Stripe Checkout —
     async function iniciarCheckout(d) {
       if (!d.anticipo || d.anticipo <= 0) {
         return alert("No hay anticipo pendiente");
       }
       try {
-        const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ anticipo: d.anticipo, numero: d.numero })
-        });
+        const res = await fetch(
+          "https://mail-server-byrb.onrender.com/create-checkout-session",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              numero: d.numero,
+              anticipo: d.anticipo,
+              clienteEmail: d.clienteEmail
+            })
+          }
+        );
         const { url, error } = await res.json();
         if (error) throw new Error(error);
         window.location = url;
       } catch (err) {
         console.error(err);
-        alert("No se pudo iniciar Stripe Checkout:\n"+err.message);
+        alert("No se pudo iniciar Stripe Checkout:\n" + err.message);
       }
     }
+
   })();
   </script>
 </body>
