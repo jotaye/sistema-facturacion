@@ -13,14 +13,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2022-11-15",
 });
 
-// 1️⃣ WEBHOOK (debe ir ANTES de cualquier body-parser o CORS)
+// 1️⃣ WEBHOOK (raw body, ANTES de CORS / JSON)
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
-
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
@@ -38,7 +37,6 @@ app.post(
       const email = session.customer_details.email;
       const total = (session.amount_total / 100).toFixed(2);
 
-      // Envía el email con el link a la factura
       const html = `
         <h1>Factura ${numero}</h1>
         <p>Gracias por tu pago de <strong>$${total}</strong>.</p>
@@ -59,15 +57,15 @@ app.post(
         console.error("❌ Error enviando email:", e);
       }
     }
-
     res.sendStatus(200);
   }
 );
 
-// 2️⃣ CORS y body-parser (JSON)
+// 2️⃣ CORS y JSON parser
+const frontendUrl = (process.env.FRONTEND_URL || "").replace(/\/+$/, "");
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: frontendUrl,
   })
 );
 app.use(express.json());
@@ -76,7 +74,6 @@ app.use(express.json());
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { numero, anticipo, clienteEmail } = req.body;
-    // Asegúrate de parsear y convertir a entero de centavos:
     const anticipoFloat = parseFloat(anticipo) || 0;
     const amountCents = Math.round(anticipoFloat * 100);
 
@@ -86,19 +83,17 @@ app.post("/create-checkout-session", async (req, res) => {
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: `Anticipo Cotización ${numero}`,
-            },
+            product_data: { name: `Anticipo Cotización ${numero}` },
             unit_amount: amountCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${process.env.FRONTEND_URL}/?success=true&numero=${numero}`,
-      cancel_url: `${process.env.FRONTEND_URL}/?canceled=true`,
+      success_url: `${frontendUrl}/?success=true&numero=${numero}`,
+      cancel_url: `${frontendUrl}/?canceled=true`,
       metadata: { numero },
-      customer_email: clienteEmail, // para recibos de Stripe
+      customer_email: clienteEmail,
     });
 
     res.json({ url: session.url });
@@ -108,14 +103,14 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// 4️⃣ (Opcional) Enviar cotización sin pagar
+// 4️⃣ Enviar cotización sin pagar
 app.post("/send-quotation", async (req, res) => {
   try {
     const { numero, clienteEmail } = req.body;
     const html = `
       <h1>Cotización ${numero}</h1>
       <p>Puedes revisar tu cotización aquí:</p>
-      <a href="${process.env.FRONTEND_URL}/?numero=${numero}">
+      <a href="${frontendUrl}/?numero=${numero}">
         Ver Cotización
       </a>
     `;
