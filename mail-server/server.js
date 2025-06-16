@@ -103,17 +103,34 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// 4️⃣ Enviar cotización sin pagar
+// 4️⃣ Enviar cotización con botón APROBAR COTIZACIÓN
 app.post("/send-quotation", async (req, res) => {
   try {
     const { numero, clienteEmail } = req.body;
+    const approveUrl = `${frontendUrl}/?action=checkout&numero=${numero}`;
     const html = `
       <h1>Cotización ${numero}</h1>
-      <p>Puedes revisar tu cotización aquí:</p>
-      <a href="${frontendUrl}/?numero=${numero}">
-        Ver Cotización
-      </a>
+      <p>Puedes revisar tu cotización o aprobarla para pagar el anticipo:</p>
+      <p style="margin:20px 0;">
+        <a
+          href="${approveUrl}"
+          style="
+            display:inline-block;
+            padding:12px 24px;
+            background-color:#1a73e8;
+            color:#fff;
+            text-decoration:none;
+            border-radius:4px;
+            font-weight:bold;
+          "
+        >
+          ✅ APROBAR COTIZACIÓN
+        </a>
+      </p>
+      <p>Si solo quieres verla, haz clic aquí:</p>
+      <a href="${frontendUrl}/?numero=${numero}">Ver Cotización</a>
     `;
+
     await sgMail.send({
       to: clienteEmail,
       from: process.env.FROM_EMAIL,
