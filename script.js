@@ -65,18 +65,22 @@ function recalcularTotales() {
   let subtotal = 0;
   tablaBody.querySelectorAll("tr").forEach(r => {
     const cantidad = parseFloat(r.querySelector(".cantidad").value) || 0;
-    const precio = parseFloat(r.querySelector(".precio").value) || 0;
-    const total = cantidad * precio;
+    const precio   = parseFloat(r.querySelector(".precio").value)  || 0;
+    const total    = cantidad * precio;
     r.querySelector(".total").innerText = `$${total.toFixed(2)}`;
     subtotal += total;
   });
   const descuentoMonto = (subtotal * (parseFloat(inpDesc.value) || 0)) / 100;
   const impuestosMonto = ((subtotal - descuentoMonto) * (parseFloat(inpImp.value) || 0)) / 100;
-  const anticipo = parseFloat(inpAnt.value) || 0;
-  resSub.innerText = subtotal.toFixed(2);
+  const anticipo       = parseFloat(
+    inpAnt.value
+      .toString()
+      .replace(/,/g, "")        // <-- elimina comas/separadores de miles
+  ) || 0;
+  resSub.innerText  = subtotal.toFixed(2);
   resDesc.innerText = descuentoMonto.toFixed(2);
-  resImp.innerText = impuestosMonto.toFixed(2);
-  resTot.innerText = (subtotal - descuentoMonto + impuestosMonto - anticipo).toFixed(2);
+  resImp.innerText  = impuestosMonto.toFixed(2);
+  resTot.innerText  = (subtotal - descuentoMonto + impuestosMonto - anticipo).toFixed(2);
 }
 
 // Leer formulario y armar objeto de datos
@@ -101,7 +105,11 @@ function leerFormulario() {
     subtotal: parseFloat(resSub.innerText),
     descuento: parseFloat(resDesc.innerText),
     impuestos: parseFloat(resImp.innerText),
-    anticipo: parseFloat(inpAnt.value),
+    anticipo: parseFloat(
+      inpAnt.value
+        .toString()
+        .replace(/,/g, "")
+    ) || 0,
     total: parseFloat(resTot.innerText)
   };
 }
@@ -134,23 +142,23 @@ async function buscar() {
 
 // Llenar formulario con datos existentes
 function llenarFormulario(d) {
-  document.getElementById("fecha").value = d.fecha;
-  document.getElementById("numero").value = d.numero;
-  document.getElementById("clienteNombre").value = d.clienteNombre;
-  document.getElementById("clienteTipo").value = d.clienteTipo;
+  document.getElementById("fecha").value            = d.fecha;
+  document.getElementById("numero").value           = d.numero;
+  document.getElementById("clienteNombre").value    = d.clienteNombre;
+  document.getElementById("clienteTipo").value      = d.clienteTipo;
   document.getElementById("clienteDireccion").value = d.clienteDireccion;
-  document.getElementById("clienteEmail").value = d.clienteEmail;
-  document.getElementById("clienteTelefono").value = d.clienteTelefono;
+  document.getElementById("clienteEmail").value     = d.clienteEmail;
+  document.getElementById("clienteTelefono").value  = d.clienteTelefono;
   tablaBody.innerHTML = "";
   d.items.forEach(() => agregarFila());
   const rows = tablaBody.querySelectorAll("tr");
   d.items.forEach((it, i) => {
     const row = rows[i];
     row.querySelector(".descripcion").value = it.descripcion;
-    row.querySelector(".cantidad").value = it.cantidad;
-    row.querySelector(".precio").value = it.precio;
+    row.querySelector(".cantidad").value    = it.cantidad;
+    row.querySelector(".precio").value      = it.precio;
   });
-  document.getElementById("inputConcepto").value = d.concepto;
+  document.getElementById("inputConcepto").value      = d.concepto;
   document.getElementById("inputObservaciones").value = d.observaciones;
   recalcularTotales();
 }
@@ -172,7 +180,7 @@ async function enviarEmail() {
   }
 }
 
-// Aprobar cotización y generar PaymentIntent + formulario Stripe
+// Aprobar cotización y redirigir a Stripe Checkout
 async function aprobarYpagar() {
   const d = leerFormulario();
   if (!d.anticipo || d.anticipo <= 0) return alert("No hay anticipo pendiente");
@@ -180,35 +188,24 @@ async function aprobarYpagar() {
   // Guarda factura en Firestore
   await db.collection("facturas").doc(d.numero).set(d);
 
-  // Crea PaymentIntent en backend
+  // Crea sesión de Checkout en backend
   try {
-    const resp = await fetch(`${BACKEND_URL}/create-payment-intent`, {
+    const resp = await fetch(`${BACKEND_URL}/create-checkout-session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: d.anticipo, numero: d.numero, clienteEmail: d.clienteEmail })
+      body: JSON.stringify({
+        numero:       d.numero,
+        anticipo:     d.anticipo,
+        clienteEmail: d.clienteEmail
+      })
     });
-    const { clientSecret, error } = await resp.json();
+    const { url, error } = await resp.json();
     if (error) throw new Error(error);
 
-    // Muestra formulario Stripe Elements
-    document.getElementById("app").innerHTML = `
-      <h2>Pagar Anticipo: $${d.anticipo.toFixed(2)}</h2>
-      <div id="card-element"></div>
-      <button id="btnPagar">Pagar</button>
-    `;
-    const elements = stripe.elements();
-    const card = elements.create("card");
-    card.mount("#card-element");
-
-    document.getElementById("btnPagar").addEventListener("click", async () => {
-      const { error: payError } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card }
-      });
-      if (payError) alert(payError.message);
-      else alert("Pago exitoso");
-    });
+    // Redirige a Stripe Checkout
+    window.location = url;
   } catch (err) {
-    console.error("Error creando PaymentIntent:", err);
-    alert("Error procesando pago");
+    console.error("Error iniciando Stripe Checkout:", err);
+    alert("No se pudo iniciar Stripe Checkout:\n" + err.message);
   }
 }
