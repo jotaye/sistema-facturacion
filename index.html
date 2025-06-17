@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -19,23 +18,25 @@
       <img src="logo-header.png" alt="Logo Jotaye" class="logo"/>
       <h1>COTIZACIÓN</h1>
     </header>
+
     <section class="info-empresa-cliente">
       <div class="empresa">
         <h3>Jotaye Group LLC</h3>
-        <p>11201 SW 55Th St, Unit 286, Miramar FL 33025</p>
+        <p>11201 SW 55th St, Unit 286, Miramar FL 33025</p>
         <p>Tel: +1 305-417-2681</p>
         <p>Email: <a href="mailto:sales@jotayegroupllc.com">sales@jotayegroupllc.com</a></p>
         <p>Web: <a href="https://www.jotayegroupllc.com" target="_blank">jotayegroupllc.com</a></p>
       </div>
       <div class="cliente">
         <h3>Datos del Cliente</h3>
-        <label>Nombre:     <input type="text" id="clienteNombre"/></label><br/>
-        <label>Tipo:       <input type="text" id="clienteTipo"/></label><br/>
-        <label>Dirección:  <input type="text" id="clienteDireccion"/></label><br/>
-        <label>Email:      <input type="email" id="clienteEmail"/></label><br/>
-        <label>Teléfono:   <input type="text" id="clienteTelefono"/></label>
+        <label>Nombre:    <input type="text" id="clienteNombre"/></label><br/>
+        <label>Tipo:      <input type="text" id="clienteTipo"/></label><br/>
+        <label>Dirección: <input type="text" id="clienteDireccion"/></label><br/>
+        <label>Email:     <input type="email" id="clienteEmail"/></label><br/>
+        <label>Teléfono:  <input type="text" id="clienteTelefono"/></label>
       </div>
     </section>
+
     <section class="encabezado-superior">
       <label>Fecha Emisión: <input type="date" id="fecha"/></label>
       <label>N° Cotización: <input type="text" id="numero" value="COT-YYYYMMDD-0001"/></label>
@@ -44,6 +45,7 @@
         <button id="btnBuscar" class="btn primary">Cargar</button>
       </label>
     </section>
+
     <section class="tabla-items">
       <h2>Detalle de Productos / Servicios</h2>
       <table id="tablaItems">
@@ -69,6 +71,7 @@
         <button id="btnEliminarFila" class="btn dark">− Eliminar Fila</button>
       </div>
     </section>
+
     <section class="concepto-observaciones">
       <h2>Información Adicional</h2>
       <label>Concepto:     <input type="text" id="inputConcepto" placeholder="Ej. Remodelación"/></label><br/>
@@ -76,6 +79,7 @@
         <textarea id="inputObservaciones" rows="3" placeholder="Condiciones, garantías, etc."></textarea>
       </label>
     </section>
+
     <section class="resumen-factura">
       <h2>Resumen de Cotización</h2>
       <div>Subtotal: $<span id="resSubtotal">0.00</span></div>
@@ -86,6 +90,7 @@
       <div>Anticipo: <input type="number" id="inputAnticipo" min="0" step="0.01" value="0"/></div>
       <div class="total-neto">Total Neto: $<span id="resTotal">0.00</span></div>
     </section>
+
     <div class="acciones">
       <button id="btnGuardar"   class="btn success">💾 Guardar</button>
       <button id="btnImprimir"  class="btn primary">🖨️ Imprimir</button>
@@ -101,69 +106,77 @@
     // — Firebase v8 Init —
     const firebaseConfig = {
       apiKey:    "TU_FIREBASE_API_KEY",
-      authDomain:"TU_FIREBASE_AUTHDOMAIN",
-      projectId: "TU_FIREBASE_PROJECT_ID",
-      storageBucket:"TU_FIREBASE_STORAGE_BUCKET",
-      messagingSenderId:"TU_FIREBASE_MESSAGING_SENDER_ID",
-      appId:     "TU_FIREBASE_APP_ID"
+      authDomain:"TU_FIREBASE_PROJECT.firebaseapp.com",
+      projectId: "TU_FIREBASE_PROJECT",
+      storageBucket:"TU_FIREBASE_PROJECT.appspot.com",
+      messagingSenderId:"TU_SENDER_ID",
+      appId:     "TU_APP_ID"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     // — Stripe Init —
-    const stripe = Stripe("TU_STRIPE_PUBLISHABLE_KEY");
+    const stripe = Stripe("pk_test_XXXXXXXX");
 
-    // — DOM Refs —
-    const tablaBody    = document.querySelector("#tablaItems tbody");
-    const btnAgregar   = document.getElementById("btnAgregarFila");
-    const btnEliminar  = document.getElementById("btnEliminarFila");
-    const btnGuardar   = document.getElementById("btnGuardar");
-    const btnImprimir  = document.getElementById("btnImprimir");
-    const btnFacturar  = document.getElementById("btnFacturar");
-    const btnReiniciar = document.getElementById("btnReiniciar");
-    const btnBuscar    = document.getElementById("btnBuscar");
-    const btnEnviar    = document.getElementById("btnEnviar");
-    const btnAprobar   = document.getElementById("btnAprobar");
-    const inpDesc      = document.getElementById("inputDescuento");
-    const inpImp       = document.getElementById("inputImpuesto");
-    const inpAnt       = document.getElementById("inputAnticipo");
-    const resSub       = document.getElementById("resSubtotal");
-    const resDesc      = document.getElementById("resDescuento");
-    const resImp       = document.getElementById("resImpuestos");
-    const resTot       = document.getElementById("resTotal");
+    const BACKEND = "https://mail-server-byrb.onrender.com";
+    const DEPOSIT_THRESHOLD = 2500.00;
+    const DEPOSIT_MIN_PCT   = 0.30;
 
-    // — Listeners Básicos —
+    // refs DOM…
+    const tablaBody   = document.querySelector("#tablaItems tbody");
+    const btnAgregar  = document.getElementById("btnAgregarFila");
+    const btnEliminar = document.getElementById("btnEliminarFila");
+    const btnGuardar  = document.getElementById("btnGuardar");
+    const btnImprimir = document.getElementById("btnImprimir");
+    const btnFacturar = document.getElementById("btnFacturar");
+    const btnReiniciar= document.getElementById("btnReiniciar");
+    const btnBuscar   = document.getElementById("btnBuscar");
+    const btnEnviar   = document.getElementById("btnEnviar");
+    const btnAprobar  = document.getElementById("btnAprobar");
+    const inpDesc     = document.getElementById("inputDescuento");
+    const inpImp      = document.getElementById("inputImpuesto");
+    const inpAnt      = document.getElementById("inputAnticipo");
+    const resSub      = document.getElementById("resSubtotal");
+    const resDesc     = document.getElementById("resDescuento");
+    const resImp      = document.getElementById("resImpuestos");
+    const resTot      = document.getElementById("resTotal");
+
+    // eventos
     btnAgregar .addEventListener("click", agregarFila);
     btnEliminar.addEventListener("click", eliminarFila);
     btnGuardar .addEventListener("click", guardarCotizacion);
     btnImprimir.addEventListener("click", ()=>window.print());
     btnFacturar.addEventListener("click", ()=>window.print());
     btnReiniciar.addEventListener("click", ()=>location.reload());
-    btnBuscar.addEventListener("click", ()=>buscar().catch(e=>alert(e.message)));
-    btnEnviar .addEventListener("click", enviarEmail);
-    btnAprobar.addEventListener("click", ()=>iniciarCheckout());
+    btnBuscar  .addEventListener("click", ()=>buscar().catch(e=>alert(e.message)));
+    btnEnviar  .addEventListener("click", enviarEmail);
+    btnAprobar .addEventListener("click", ()=>aprobarYpagar().catch(e=>alert(e.message)));
     [inpDesc, inpImp, inpAnt].forEach(i=>i.addEventListener("input", recalcularTotales));
 
-    // — URL params: carga/checkout/success —
+    // parámetros URL
     const params = new URLSearchParams(location.search);
-    const numero = params.get("numero");
-    if (params.get("action")==="checkout" && numero) {
-      await buscarCotizacion(numero);
-      return iniciarCheckout();
+    const num    = params.get("numero");
+    if (params.get("action")==="checkout" && num) {
+      // llegada desde correo → iniciar Checkout
+      const data = await buscarCotizacion(num);
+      return iniciarCheckout(data);
     }
-    if (params.get("success")==="true" && numero) {
-      const data = await buscarCotizacion(numero);
-      // Guardar factura
-      await db.collection("facturas").doc(numero).set(data);
-      llenarFormulario(data, true);
+    if (params.get("success")==="true" && num) {
+      // pago exitoso → ocultar botones, guardar factura y mostrar
+      const data = await buscarCotizacion(num);
+      await db.collection("facturas").doc(num).set(data);
+      llenarFormulario(data);
+      ["btnGuardar","btnEnviar","btnFacturar","btnBuscar","btnAprobar"]
+        .forEach(id=>document.getElementById(id).style.display="none");
+      btnImprimir.innerText="🖨️ Imprimir Factura";
       return;
     }
 
-    // arranca
     recalcularTotales();
 
-    // — FUNCIONES —
-    function agregarFila(){
+    /* — FUNCIONES — */
+
+    function agregarFila() {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${tablaBody.rows.length+1}</td>
@@ -175,32 +188,52 @@
       tablaBody.appendChild(row);
       row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
       row.querySelector(".precio") .addEventListener("input", recalcularTotales);
-      row.querySelector(".btnEliminar")
-         .addEventListener("click", ()=>{ row.remove(); recalcularTotales(); });
+      row.querySelector(".btnEliminar").addEventListener("click", ()=>{
+        row.remove();
+        recalcularTotales();
+      });
       recalcularTotales();
     }
-    function eliminarFila(){
-      if(tablaBody.rows.length>0){
+
+    function eliminarFila() {
+      if (tablaBody.rows.length>1) {
         tablaBody.deleteRow(-1);
         recalcularTotales();
       }
     }
-    function recalcularTotales(){
+
+    function recalcularTotales() {
       let sub=0;
       tablaBody.querySelectorAll("tr").forEach(r=>{
-        const c=+r.querySelector(".cantidad").value||0;
-        const p=+r.querySelector(".precio").value||0;
-        const t=c*p; r.querySelector(".total").innerText=`$${t.toFixed(2)}`; sub+=t;
+        const c = parseFloat(r.querySelector(".cantidad").value)||0;
+        const p = parseFloat(r.querySelector(".precio").value)||0;
+        const t = c*p;
+        r.querySelector(".total").innerText = `$${t.toFixed(2)}`;
+        sub += t;
       });
-      const dPct=+inpDesc.value||0, dAmt=sub*dPct/100;
-      const iPct=+inpImp.value||0, iAmt=(sub-dAmt)*iPct/100;
-      const antic=parseFloat(inpAnt.value)||0;
-      resSub.innerText=sub.toFixed(2);
-      resDesc.innerText=dAmt.toFixed(2);
-      resImp.innerText=iAmt.toFixed(2);
-      resTot.innerText=(sub-dAmt+iAmt-antic).toFixed(2);
+      const dAmt = sub*(parseFloat(inpDesc.value)||0)/100;
+      const iAmt = (sub-dAmt)*(parseFloat(inpImp.value)||0)/100;
+      const neto = sub - dAmt + iAmt;
+
+      // anticipo mínimo o total full
+      let antic = parseFloat(inpAnt.value)||0;
+      if (neto < DEPOSIT_THRESHOLD) {
+        antic = neto;
+        inpAnt.closest("div").style.display="none";
+      } else {
+        inpAnt.closest("div").style.display="";
+        const minAnt = +(neto * DEPOSIT_MIN_PCT).toFixed(2);
+        if (antic < minAnt) antic = minAnt;
+      }
+      inpAnt.value = antic.toFixed(2);
+
+      resSub.innerText  = sub.toFixed(2);
+      resDesc.innerText = dAmt.toFixed(2);
+      resImp.innerText  = iAmt.toFixed(2);
+      resTot.innerText  = neto.toFixed(2);
     }
-    function leerFormulario(){
+
+    function leerFormulario() {
       return {
         fecha: document.getElementById("fecha").value,
         numero: document.getElementById("numero").value,
@@ -210,113 +243,84 @@
         clienteEmail: document.getElementById("clienteEmail").value,
         clienteTelefono: document.getElementById("clienteTelefono").value,
         items: Array.from(tablaBody.querySelectorAll("tr")).map((r,i)=>({
-          id:i+1,
-          descripcion:r.querySelector(".descripcion").value,
-          cantidad:+r.querySelector(".cantidad").value,
-          precio:+r.querySelector(".precio").value,
+          id: i+1,
+          descripcion: r.querySelector(".descripcion").value,
+          cantidad: +r.querySelector(".cantidad").value,
+          precio: +r.querySelector(".precio").value,
           total: parseFloat(r.querySelector(".total").innerText.replace("$",""))
         })),
-        concepto:document.getElementById("inputConcepto").value,
-        observaciones:document.getElementById("inputObservaciones").value,
+        concepto: document.getElementById("inputConcepto").value,
+        observaciones: document.getElementById("inputObservaciones").value,
         subtotal: parseFloat(resSub.innerText),
-        descuento:parseFloat(resDesc.innerText),
-        impuestos:parseFloat(resImp.innerText),
-        anticipo:parseFloat(inpAnt.value),
-        total:parseFloat(resTot.innerText)
+        descuento: parseFloat(resDesc.innerText),
+        impuestos: parseFloat(resImp.innerText),
+        anticipo: parseFloat(inpAnt.value),
+        total: parseFloat(resTot.innerText)
       };
     }
-    async function guardarCotizacion(){
-      const d=leerFormulario();
-      await db.collection("cotizaciones").add(d);
+
+    async function guardarCotizacion() {
+      const data = leerFormulario();
+      await db.collection("cotizaciones").add(data);
       alert("Cotización guardada");
     }
-    async function buscarCotizacion(num){
-      const snap=await db.collection("cotizaciones")
-                       .where("numero","==",num).get();
-      if(snap.empty) throw new Error("No encontrado");
-      const data=snap.docs[0].data();
-      llenarFormulario(data,false);
-      return data;
+
+    async function buscarCotizacion(num) {
+      const snap = await db.collection("cotizaciones").where("numero","==",num).get();
+      if (snap.empty) throw new Error("No encontrada");
+      return snap.docs[0].data();
     }
-    async function buscar(){
-      const num=document.getElementById("inputNumeroBuscar").value.trim();
-      if(!num) return alert("Escribe un número");
-      await buscarCotizacion(num);
+
+    async function buscar() {
+      const num = document.getElementById("inputNumeroBuscar").value.trim();
+      if (!num) return alert("Escribe un número");
+      const data = await buscarCotizacion(num);
+      llenarFormulario(data);
     }
-    function llenarFormulario(d,isInvoice){
-      // llena campos
-      document.getElementById("fecha").value    = d.fecha;
-      document.getElementById("numero").value   = d.numero;
-      ["clienteNombre","clienteTipo",
-       "clienteDireccion","clienteEmail",
-       "clienteTelefono"].forEach(id=>{
-        document.getElementById(id).value = d[id];
-      });
+
+    function llenarFormulario(d) {
+      document.getElementById("fecha").value      = d.fecha;
+      document.getElementById("numero").value     = d.numero;
+      document.getElementById("clienteNombre").value    = d.clienteNombre;
+      document.getElementById("clienteTipo").value      = d.clienteTipo;
+      document.getElementById("clienteDireccion").value = d.clienteDireccion;
+      document.getElementById("clienteEmail").value     = d.clienteEmail;
+      document.getElementById("clienteTelefono").value  = d.clienteTelefono;
       tablaBody.innerHTML="";
-      d.items.forEach(it=>{
-        agregarFila();
-        const r=tablaBody.lastElementChild;
-        r.querySelector(".descripcion").value=it.descripcion;
-        r.querySelector(".cantidad").value   =it.cantidad;
-        r.querySelector(".precio").value     =it.precio;
+      d.items.forEach(()=>agregarFila());
+      const rows = tablaBody.querySelectorAll("tr");
+      d.items.forEach((it,i)=>{
+        rows[i].querySelector(".descripcion").value = it.descripcion;
+        rows[i].querySelector(".cantidad").value    = it.cantidad;
+        rows[i].querySelector(".precio").value      = it.precio;
       });
       document.getElementById("inputConcepto").value      = d.concepto;
       document.getElementById("inputObservaciones").value = d.observaciones;
       recalcularTotales();
-      // si es factura, sólo imprimir
-      if(isInvoice){
-        ["btnGuardar","btnEnviar","btnFacturar","btnBuscar","btnAprobar"]
-          .forEach(id=>document.getElementById(id).style.display="none");
-        btnImprimir.innerText="🖨️ Imprimir Factura";
-      }
     }
-    async function enviarEmail(){
-      try {
-        const d=leerFormulario();
-        const res=await fetch(
-          "https://mail-server-byrb.onrender.com/send-quotation",
-          {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)}
-        );
-        if(!res.ok) throw new Error(res.status);
-        alert("Cotización enviada");
-      } catch(e){
-        console.error(e);
-        alert("Error enviando cotización");
-      }
+
+    async function enviarEmail() {
+      const data = leerFormulario();
+      const res = await fetch(`${BACKEND}/send-quotation`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(data)
+      });
+      if (res.ok) alert("Correo de cotización enviado");
+      else       alert("Error enviando cotización");
     }
-    async function iniciarCheckout(){
-      const d=leerFormulario();
-      const minAnt = d.total>=2500
-        ? Math.round(d.total*0.3*100)/100
-        : d.total;
-      if(d.anticipo < minAnt){
-        return alert(
-          d.total>=2500
-            ? `El anticipo mínimo es $${minAnt.toFixed(2)}`
-            : `Debe pagar el total de $${d.total.toFixed(2)}`
-        );
-      }
-      try {
-        const res=await fetch(
-          "https://mail-server-byrb.onrender.com/create-checkout-session",
-          {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-              numero:d.numero,
-              anticipo:d.anticipo,
-              clienteEmail:d.clienteEmail
-            })
-          }
-        );
-        const {url,error}=await res.json();
-        if(error) throw new Error(error);
-        window.location=url;
-      } catch(err){
-        console.error(err);
-        alert("No se pudo iniciar Stripe Checkout:\n"+err.message);
-      }
+
+    async function aprobarYpagar() {
+      const d = leerFormulario();
+      if (!d.anticipo || d.anticipo<=0) return alert("No hay anticipo");
+      const resp = await fetch(`${BACKEND}/create-checkout-session`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ numero:d.numero, anticipo:d.anticipo, clienteEmail:d.clienteEmail })
+      });
+      const { url, error } = await resp.json();
+      if (error) throw new Error(error);
+      window.location = url;
     }
+
   })();
   </script>
 </body>
