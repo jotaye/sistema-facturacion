@@ -7,13 +7,13 @@ import sgMail from "@sendgrid/mail";
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 0️⃣ Configurar SendGrid y Stripe
+// Configuración SendGrid & Stripe
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2022-11-15",
 });
 
-// 1️⃣ Webhook (raw body, ANTES de CORS / JSON parser)
+// 1️⃣ Webhook (RAW body)
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -27,89 +27,80 @@ app.post(
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error("⚠️ Webhook signature error:", err.message);
+      console.error("🔔 Webhook Error:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       const numero = session.metadata.numero;
-      const email = session.customer_details.email;
-      const total = (session.amount_total / 100).toFixed(2);
+      const email  = session.customer_details.email;
+      const total  = (session.amount_total/100).toFixed(2);
 
-      // Enviar factura final al cliente
       const invoiceHtml = `
         <div style="font-family:sans-serif;max-width:600px;margin:auto">
           <div style="text-align:center">
-            <img src="https://sistema-facturacion-iota.vercel.app/logo-header.png" 
+            <img src="${process.env.FRONTEND_URL}/logo-header.png" 
                  alt="Logo" style="max-width:200px;margin-bottom:20px"/>
             <h1>Factura ${numero}</h1>
           </div>
           <p>Gracias por tu pago de <strong>$${total}</strong>.</p>
-          <p>Puedes ver o descargar tu factura completa aquí:</p>
-          <p><a href="${process.env.FRONTEND_URL}/?success=true&numero=${numero}">
+          <p>Puedes ver o descargar tu factura aquí:</p>
+          <a href="${process.env.FRONTEND_URL}/?success=true&numero=${numero}">
             Ver Factura
-          </a></p>
+          </a>
         </div>
       `;
 
       try {
         await sgMail.send({
           to: email,
-          from: process.env.FROM_EMAIL,      // debe ser sales@jotayegroupllc.com
+          from: process.env.FROM_EMAIL,
           subject: `Tu factura ${numero}`,
-          html: invoiceHtml,
+          html: invoiceHtml
         });
         console.log(`📧 Factura ${numero} enviada a ${email}`);
       } catch (e) {
         console.error("❌ Error enviando factura:", e);
       }
     }
-
     res.sendStatus(200);
   }
 );
 
-// 2️⃣ CORS y body-parser PARA TODAS las demás rutas
-const frontendUrl = (process.env.FRONTEND_URL || "").replace(/\/+$/, "");
-app.use(
-  cors({
-    origin: frontendUrl,
-  })
-);
+// 2️⃣ CORS + JSON parser
+const frontendUrl = (process.env.FRONTEND_URL||"").replace(/\/+$/,"");
+app.use(cors({ origin: frontendUrl }));
 app.use(express.json());
 
-// 3️⃣ Crear sesión de Checkout (Stripe)
+// 3️⃣ Crear sesión de Checkout
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { numero, anticipo, clienteEmail } = req.body;
-    const amountCents = Math.round((parseFloat(anticipo) || 0) * 100);
-
+    const amountCents = Math.round((parseFloat(anticipo)||0)*100);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [{
-        price_data: {
-          currency: "usd",
-          product_data: { name: `Anticipo Cotización ${numero}` },
-          unit_amount: amountCents,
+        price_data:{
+          currency:"usd",
+          product_data:{ name:`Anticipo Cotización ${numero}` },
+          unit_amount: amountCents
         },
-        quantity: 1,
+        quantity:1
       }],
-      mode: "payment",
-      success_url: `${frontendUrl}/?success=true&numero=${numero}`,
-      cancel_url:  `${frontendUrl}/?canceled=true`,
-      metadata: { numero },
-      customer_email: clienteEmail,
+      mode:"payment",
+      success_url:`${frontendUrl}/?success=true&numero=${numero}`,
+      cancel_url: `${frontendUrl}/?canceled=true`,
+      metadata:{ numero },
+      customer_email: clienteEmail
     });
-
     res.json({ url: session.url });
   } catch (err) {
-    console.error("❌ Error creando Checkout Session:", err);
+    console.error("❌ Checkout Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 4️⃣ Enviar cotización por email (SendGrid)
+// 4️⃣ Enviar cotización
 app.post("/send-quotation", async (req, res) => {
   try {
     const {
@@ -120,8 +111,8 @@ app.post("/send-quotation", async (req, res) => {
       anticipo, total
     } = req.body;
 
-    // Montar la tabla de items
-    const rowsHtml = (items || []).map(it => `
+    // Tabla HTML
+    const rows = (items||[]).map(it=>`
       <tr>
         <td style="border:1px solid #333;padding:5px">${it.id}</td>
         <td style="border:1px solid #333;padding:5px">${it.descripcion}</td>
@@ -131,12 +122,10 @@ app.post("/send-quotation", async (req, res) => {
       </tr>
     `).join("");
 
-    // HTML del email
     const html = `
       <div style="font-family:sans-serif;max-width:600px;margin:auto">
         <div style="text-align:center;margin-bottom:20px">
-          <img src="https://sistema-facturacion-iota.vercel.app/logo-header.png"
-               alt="Logo" style="max-width:200px;"/><br/>
+          <img src="${frontendUrl}/logo-header.png" alt="Logo" style="max-width:200px;"/><br/>
           <h1>Cotización ${numero}</h1>
         </div>
         <p>Puedes revisar tu cotización y aprobar el anticipo desde aquí:</p>
@@ -162,7 +151,7 @@ app.post("/send-quotation", async (req, res) => {
             </tr>
           </thead>
           <tbody>
-            ${rowsHtml}
+            ${rows}
           </tbody>
         </table>
         <h2>Resumen</h2>
@@ -173,28 +162,24 @@ app.post("/send-quotation", async (req, res) => {
         <h3>Total: $${total.toFixed(2)}</h3>
         <h2>Información Adicional</h2>
         <p><strong>Concepto:</strong> ${concepto}</p>
-        <p><strong>Observaciones:</strong><br/>
-           ${observaciones.replace(/\n/g,"<br/>")}</p>
+        <p><strong>Observaciones:</strong><br/>${observaciones.replace(/\n/g,"<br/>")}</p>
         <hr/>
-        <p><em>Nota:</em> Los pagos con tarjeta tienen un recargo
-           del 3% por procesamiento.</p>
+        <p><em>Nota:</em> Los pagos con tarjeta tienen un recargo del 3% por procesamiento.</p>
       </div>
     `;
 
     await sgMail.send({
       to: clienteEmail,
-      from: process.env.FROM_EMAIL,  // sales@jotayegroupllc.com
+      from: process.env.FROM_EMAIL,
       subject: `Tu cotización ${numero}`,
       html
     });
 
     res.json({ ok: true });
   } catch (e) {
-    console.error("❌ Error en /send-quotation:", e);
+    console.error("❌ /send-quotation Error:", e);
     res.status(500).json({ error: "Error enviando cotización" });
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`🚀 Mail‐server corriendo en puerto ${PORT}`)
-);
+app.listen(PORT, ()=>console.log(`🚀 Mail‐server corriendo en puerto ${PORT}`));
