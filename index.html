@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sistema de Cotización – Jotaye Group LLC</title>
   <link rel="icon" href="favicon.ico"/>
@@ -100,7 +100,6 @@
     <div class="acciones">
       <button id="btnGuardar"   class="btn success">💾 Guardar</button>
       <button id="btnImprimir"  class="btn primary">🖨️ Imprimir</button>
-      <button id="btnFacturar"  class="btn warning">📄 Facturar</button>
       <button id="btnReiniciar" class="btn dark">🔄 Reiniciar</button>
       <button id="btnEnviar"    class="btn success">✉️ Enviar</button>
       <button id="btnAprobar"   class="btn primary">✅ Aprobar (Pagar)</button>
@@ -122,16 +121,12 @@
     const db = firebase.firestore();
 
     // — Stripe Init —
-    const stripe = Stripe("pk_test_51RYYSpPFkZDbc1hwxDRXWJQ2T4sYQEtA5Ejx2gB2sCA90tdUQwJiqxdzkkn2VRz3mdFVu5BxbBnZheXQcNSB1CxT00hWKt2xXI");
+    const stripe = Stripe("pk_test_XXXXXXXXXXXXXXXXXXXX");
 
     // — Refs DOM —
     const tablaBody    = document.querySelector("#tablaItems tbody");
-    const btnAgregar   = document.getElementById("btnAgregarFila");
-    const btnEliminar  = document.getElementById("btnEliminarFila");
     const btnGuardar   = document.getElementById("btnGuardar");
     const btnImprimir  = document.getElementById("btnImprimir");
-    const btnFacturar  = document.getElementById("btnFacturar");
-    const btnReiniciar = document.getElementById("btnReiniciar");
     const btnBuscar    = document.getElementById("btnBuscar");
     const btnEnviar    = document.getElementById("btnEnviar");
     const btnAprobar   = document.getElementById("btnAprobar");
@@ -143,19 +138,12 @@
     const resImp       = document.getElementById("resImpuestos");
     const resTot       = document.getElementById("resTotal");
 
-    // — Eventos básicos —
-    btnAgregar  .addEventListener("click", agregarFila);
-    btnEliminar .addEventListener("click", eliminarFila);
+    // — Eventos —
     btnGuardar  .addEventListener("click", guardarCotizacion);
-    btnImprimir .addEventListener("click", ()=>window.print());
-    btnFacturar .addEventListener("click", ()=>window.print());
-    btnReiniciar.addEventListener("click", ()=>location.reload());
-    btnBuscar   .addEventListener("click", ()=>buscar().catch(e=>alert(e.message)));
+    btnImprimir .addEventListener("click", imprimirPlantilla);
+    btnBuscar   .addEventListener("click", ()=>buscarCotizacionUI().catch(e=>alert(e.message)));
     btnEnviar   .addEventListener("click", enviarEmail);
-    btnAprobar  .addEventListener("click", ()=>{
-      const d = leerFormulario();
-      iniciarCheckout(d);
-    });
+    btnAprobar  .addEventListener("click", ()=>iniciarCheckout(leerFormulario()));
     [inpDesc, inpImp, inpAnt].forEach(i=>i.addEventListener("input", recalcularTotales));
 
     // — URL params —
@@ -167,66 +155,18 @@
     }
     if (params.get("success")==="true" && numero) {
       const d = await buscarCotizacion(numero);
-      // Guardar factura
       await db.collection("facturas").doc(numero).set(d);
-      llenarFormulario(d);
-      ["btnGuardar","btnEnviar","btnFacturar","btnBuscar","btnAprobar"]
-        .forEach(id=>document.getElementById(id).style.display="none");
-      btnImprimir.innerText = "🖨️ Imprimir Factura";
+      imprimirPlantilla(d);
       return;
     }
 
     recalcularTotales();
 
-    // — Funciones —
-    function agregarFila() {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${tablaBody.rows.length+1}</td>
-        <td><input class="descripcion" type="text"></td>
-        <td><input class="cantidad"   type="number" min="1" value="1"></td>
-        <td><input class="precio"      type="number" min="0" step="0.01" value="0.00"></td>
-        <td class="total">$0.00</td>
-        <td><button class="btnEliminar btn warning">Eliminar</button></td>
-      `;
-      tablaBody.appendChild(row);
-      row.querySelector(".cantidad").addEventListener("input", recalcularTotales);
-      row.querySelector(".precio") .addEventListener("input", recalcularTotales);
-      row.querySelector(".btnEliminar").addEventListener("click", ()=>{
-        row.remove(); recalcularTotales();
-      });
-      recalcularTotales();
-    }
-
-    function eliminarFila() {
-      if (tablaBody.rows.length>0) {
-        tablaBody.deleteRow(-1);
-        recalcularTotales();
-      }
-    }
-
-    function recalcularTotales() {
-      let sub=0;
-      tablaBody.querySelectorAll("tr").forEach(r=>{
-        const c = parseFloat(r.querySelector(".cantidad").value)||0;
-        const p = parseFloat(r.querySelector(".precio") .value)||0;
-        const t = c*p;
-        r.querySelector(".total").innerText = "$"+t.toFixed(2);
-        sub += t;
-      });
-      const d = sub*(parseFloat(inpDesc.value)||0)/100;
-      const i = (sub-d)*(parseFloat(inpImp.value)||0)/100;
-      const a = parseFloat(inpAnt.value)||0;
-      resSub.innerText  = sub.toFixed(2);
-      resDesc.innerText = d.toFixed(2);
-      resImp.innerText  = i.toFixed(2);
-      resTot.innerText  = (sub-d+i-a).toFixed(2);
-    }
-
+    // — Funciones auxiliares —
     function leerFormulario() {
       return {
-        fecha: document.getElementById("fecha").value,
         numero: document.getElementById("numero").value,
+        fecha: document.getElementById("fecha").value,
         clienteNombre: document.getElementById("clienteNombre").value,
         clienteTipo: document.getElementById("clienteTipo").value,
         clienteDireccion: document.getElementById("clienteDireccion").value,
@@ -236,8 +176,8 @@
           id: i+1,
           descripcion: r.querySelector(".descripcion").value,
           cantidad: +r.querySelector(".cantidad").value,
-          precio:   +r.querySelector(".precio").value,
-          total:    parseFloat(r.querySelector(".total").innerText.replace("$",""))
+          precio: +r.querySelector(".precio").value,
+          total: parseFloat(r.querySelector(".total").innerText.replace("$",""))
         })),
         concepto: document.getElementById("inputConcepto").value,
         observaciones: document.getElementById("inputObservaciones").value,
@@ -251,83 +191,103 @@
 
     async function guardarCotizacion() {
       const d = leerFormulario();
-      await db.collection("cotizaciones").add(d);
-      alert("Cotización guardada");
+      await db.collection("cotizaciones").doc(d.numero).set(d);
+      alert("Cotización guardada: "+d.numero);
     }
 
     async function buscarCotizacion(num) {
-      const snap = await db.collection("cotizaciones")
-        .where("numero","==",num).get();
-      if (snap.empty) throw new Error("No encontrado");
-      return snap.docs[0].data();
+      const doc = await db.collection("cotizaciones").doc(num).get();
+      if (!doc.exists) throw new Error("No encontrado: "+num);
+      return doc.data();
     }
 
-    async function buscar() {
+    async function buscarCotizacionUI() {
       const num = document.getElementById("inputNumeroBuscar").value.trim();
       if (!num) return alert("Escribe un número");
       const d = await buscarCotizacion(num);
-      llenarFormulario(d);
+      // Opcional: rellenar la UI con d si lo deseas
+      imprimirPlantilla(d);
     }
 
-    function llenarFormulario(d) {
-      document.getElementById("fecha").value = d.fecha;
-      document.getElementById("numero").value = d.numero;
-      document.getElementById("clienteNombre").value    = d.clienteNombre;
-      document.getElementById("clienteTipo").value      = d.clienteTipo;
-      document.getElementById("clienteDireccion").value = d.clienteDireccion;
-      document.getElementById("clienteEmail").value     = d.clienteEmail;
-      document.getElementById("clienteTelefono").value  = d.clienteTelefono;
-      tablaBody.innerHTML = "";
-      d.items.forEach(it => {
-        agregarFila();
-        const row = tablaBody.lastElementChild;
-        row.querySelector(".descripcion").value = it.descripcion;
-        row.querySelector(".cantidad")  .value = it.cantidad;
-        row.querySelector(".precio")    .value = it.precio;
+    function recalcularTotales() {
+      let sub=0;
+      tablaBody.querySelectorAll("tr").forEach(r=>{
+        const c=+r.querySelector(".cantidad").value||0;
+        const p=+r.querySelector(".precio").value||0;
+        const t=c*p; r.querySelector(".total").innerText="$"+t.toFixed(2);
+        sub+=t;
       });
-      document.getElementById("inputConcepto").value      = d.concepto;
-      document.getElementById("inputObservaciones").value = d.observaciones;
-      recalcularTotales();
+      const d=sub*(parseFloat(inpDesc.value)||0)/100;
+      const i=(sub-d)*(parseFloat(inpImp.value)||0)/100;
+      const a=parseFloat(inpAnt.value)||0;
+      resSub.innerText=sub.toFixed(2);
+      resDesc.innerText=d.toFixed(2);
+      resImp.innerText=i.toFixed(2);
+      resTot.innerText=(sub-d+i-a).toFixed(2);
     }
 
     async function enviarEmail() {
       const d = leerFormulario();
-      try {
-        const res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify(d)
-        });
-        if (!res.ok) throw new Error("Status "+res.status);
-        alert("Correo enviado");
-      } catch (e) {
-        console.error(e);
-        alert("Error enviando cotización");
-      }
+      const res = await fetch("https://mail-server-byrb.onrender.com/send-quotation", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(d)
+      });
+      if (!res.ok) throw new Error("Error "+res.status);
+      alert("Cotización enviada");
     }
 
     async function iniciarCheckout(d) {
-      if (!d.anticipo || d.anticipo <= 0) {
-        return alert("No hay anticipo pendiente");
-      }
-      try {
-        const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({
-            numero: d.numero,
-            anticipo: d.anticipo,
-            clienteEmail: d.clienteEmail
-          })
-        });
-        const { url, error } = await res.json();
-        if (error) throw new Error(error);
-        window.location = url;
-      } catch (err) {
-        console.error(err);
-        alert("No se pudo iniciar Stripe Checkout:\n"+err.message);
-      }
+      if (!d.anticipo||d.anticipo<=0) return alert("No hay anticipo");
+      const res = await fetch("https://mail-server-byrb.onrender.com/create-checkout-session", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ numero:d.numero, anticipo:d.anticipo, clienteEmail:d.clienteEmail })
+      });
+      const { url, error } = await res.json();
+      if (error) throw new Error(error);
+      window.location=url;
     }
+
+    function imprimirPlantilla(data) {
+      const cot = data||leerFormulario();
+      const w = window.open("","_blank");
+      const html = `
+        <html><head><title>Cotización ${cot.numero}</title>
+          <link rel="stylesheet" href="style.css"/>
+        </head><body>
+          <div class="print-header">
+            <img src="logo-header.png" class="logo"/><h1>COTIZACIÓN</h1>
+          </div>
+          <p><strong>No.:</strong> ${cot.numero}</p>
+          <p><strong>Fecha:</strong> ${cot.fecha}</p>
+          <h2>Detalle</h2>
+          <table class="print-table">
+            <thead><tr>
+              <th>ID</th><th>Descripción</th><th>Cant.</th>
+              <th>Precio</th><th>Total</th>
+            </tr></thead><tbody>
+            ${cot.items.map(i=>`
+              <tr>
+                <td>${i.id}</td>
+                <td>${i.descripcion}</td>
+                <td>${i.cantidad}</td>
+                <td>$${i.precio.toFixed(2)}</td>
+                <td>$${i.total.toFixed(2)}</td>
+              </tr>`).join("")}
+          </tbody></table>
+          <h3>Resumen</h3>
+          <p>Subtotal: $${cot.subtotal.toFixed(2)}</p>
+          <p>Descuento: $${cot.descuento.toFixed(2)}</p>
+          <p>Impuestos: $${cot.impuestos.toFixed(2)}</p>
+          <p><strong>Total Neto: $${cot.total.toFixed(2)}</strong></p>
+          <h4>Observaciones</h4>
+          <p>${cot.observaciones}</p>
+          <p><em>Nota:</em> Pagos con tarjeta con recargo 3%.</p>
+        </body></html>`;
+      w.document.write(html); w.document.close();
+      setTimeout(()=>w.print(), 300);
+    }
+
   })();
   </script>
 </body>
